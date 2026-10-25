@@ -2,7 +2,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRef } from 'react'
 import Encabezado, { COLUMNAS } from './Encabezado'
 import FilaPar from './FilaPar'
-import TablaCompleta, { type TablaProps } from './TablaCompleta'
+import type { TablaProps } from './TablaCompleta'
 
 // La altura de cada fila en píxeles: la misma que fija estilos.css.
 export const ALTO_FILA = 44
@@ -11,16 +11,52 @@ export const ALTO_FILA = 44
 // se sustituyen por dos filas vacías con su altura, para que la barra de scroll
 // mida lo mismo que con la tabla entera.
 export default function TablaVirtual({ pares, favoritos }: TablaProps) {
-  // TODO (paso 7): virtualiza la tabla.
-  // - Una ref para el div con scroll (contenedorRef) y useVirtualizer con count,
-  //   getScrollElement, estimateSize (ALTO_FILA), overscan y getItemKey (el
-  //   símbolo del par: así la fila de BTC sigue siendo la de BTC al reordenar).
-  // - virtualizador.getVirtualItems() da las filas que tocan; antes y después
-  //   van dos filas de relleno con la altura que falta (la primera empieza en
-  //   filas[0].start; la última acaba en getTotalSize()).
-  // - La tabla lleva aria-rowcount={pares.length + 1}, <Encabezado conIndices />
-  //   y cada FilaPar su indice (fila.index + 2), para los lectores de pantalla.
-  // - Debajo, «Filas en el DOM: N» con las que de verdad hay.
-  // Mientras tanto, enseña la tabla completa.
-  return <TablaCompleta pares={pares} favoritos={favoritos} />
+  const contenedorRef = useRef<HTMLDivElement>(null)
+
+  // El React Compiler se salta este componente, y npm run lint lo avisa
+  // (incompatible-library): el virtualizador cambia por dentro sin dejar de
+  // ser el mismo objeto, y memorizar lo que devuelve dejaría filas viejas.
+  // Por eso a FilaPar solo le llegan datos, nunca el virtualizador.
+  const virtualizador = useVirtualizer({
+    count: pares.length,
+    getScrollElement: () => contenedorRef.current,
+    estimateSize: () => ALTO_FILA,
+    overscan: 8,
+    // Cada fila se identifica por su par, no por su posición: al reordenar
+    // por variación, la fila de BTC sigue siendo la de BTC.
+    getItemKey: (indice) => pares[indice].simbolo,
+  })
+
+  const filas = virtualizador.getVirtualItems()
+  const rellenoArriba = filas.length > 0 ? filas[0].start : 0
+  const rellenoAbajo = filas.length > 0 ? virtualizador.getTotalSize() - filas[filas.length - 1].end : 0
+
+  return (
+    <>
+      <div ref={contenedorRef} className="tabla-desplazable" tabIndex={0} role="region" aria-label="Pares en USDT">
+        <table className="tabla-pares" aria-rowcount={pares.length + 1}>
+          <Encabezado conIndices />
+          <tbody>
+            {rellenoArriba > 0 && (
+              <tr className="relleno" aria-hidden="true">
+                <td colSpan={COLUMNAS} style={{ height: rellenoArriba }} />
+              </tr>
+            )}
+            {filas.map((fila) => {
+              const par = pares[fila.index]
+              return (
+                <FilaPar key={fila.key} par={par} esFavorito={favoritos.has(par.simbolo)} indice={fila.index + 2} />
+              )
+            })}
+            {rellenoAbajo > 0 && (
+              <tr className="relleno" aria-hidden="true">
+                <td colSpan={COLUMNAS} style={{ height: rellenoAbajo }} />
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <p className="filas-dom">Filas en el DOM: {filas.length}</p>
+    </>
+  )
 }

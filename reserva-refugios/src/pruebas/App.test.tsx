@@ -115,9 +115,18 @@ describe('paso 2: quién viene', () => {
     expect(screen.getByLabelText('Personas con licencia federativa de montaña')).toHaveFocus()
   })
 
-  // TODO (paso 6): rellena nombre, correo y federados, escribe el teléfono
-  // terminando en '{Enter}' y comprueba que llegas al paso 3.
-  it.todo('Intro en un campo sigue adelante, no vuelve atrás')
+  it('Intro en un campo sigue adelante, no vuelve atrás', async () => {
+    const usuario = montarApp()
+    await rellenarRefugio(usuario)
+    await screen.findByRole('heading', { name: 'Paso 2 de 3: Quién viene' })
+    await escribir(usuario, 'Nombre y apellidos', 'Lucía Ferrer')
+    await escribir(usuario, 'Correo electrónico', 'lucia@ejemplo.es')
+    await escribir(usuario, 'Personas con licencia federativa de montaña', '0')
+
+    await usuario.type(screen.getByLabelText('Teléfono móvil'), '612345678{Enter}')
+
+    expect(await screen.findByRole('heading', { name: 'Paso 3 de 3: Revisar y confirmar' })).toBeInTheDocument()
+  })
 })
 
 describe('paso 3: confirmar', () => {
@@ -189,13 +198,34 @@ describe('paso 3: confirmar', () => {
     expect(contarReservas()).toBe(0)
   })
 
-  // TODO (paso 6): con cambiarAjustes({ proximaReserva: 'sin-plazas' }),
-  // confirma y comprueba el aviso, que las dos noches dicen «2 de 60 libres»,
-  // que sigues en el paso 3 y que no se ha guardado ninguna reserva.
-  it.todo('si otro grupo se adelanta, enseña las plazas que quedan de verdad')
+  it('si otro grupo se adelanta, enseña las plazas que quedan de verdad', async () => {
+    plazasDeEjemplo()
+    cambiarAjustes({ proximaReserva: 'sin-plazas' })
+    const usuario = montarApp()
+    await llegarAConfirmar(usuario)
+    await usuario.click(screen.getByRole('checkbox', { name: 'He leído y acepto las normas del refugio' }))
 
-  // TODO (paso 6): confirma una reserva, pulsa «Hacer otra reserva» y
-  // comprueba que el foco está en el título del paso 1, que ningún refugio
-  // está elegido y que la columna «Tu reserva» ha desaparecido.
-  it.todo('«Hacer otra reserva» vuelve al principio')
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar reserva' }))
+
+    expect(await screen.findByText(/Mientras confirmabas, otra reserva se ha adelantado/)).toBeInTheDocument()
+    // Ni las 10 y 40 de antes ni las optimistas: las 2 que quedan de verdad
+    expect(screen.getAllByText('2 de 60 libres')).toHaveLength(2)
+    expect(screen.getByRole('heading', { name: 'Paso 3 de 3: Revisar y confirmar' })).toBeInTheDocument()
+    expect(contarReservas()).toBe(0)
+  })
+
+  it('«Hacer otra reserva» vuelve al principio', async () => {
+    plazasDeEjemplo()
+    const usuario = montarApp()
+    await llegarAConfirmar(usuario)
+    await usuario.click(screen.getByRole('checkbox', { name: 'He leído y acepto las normas del refugio' }))
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar reserva' }))
+    await screen.findByRole('heading', { name: 'Reserva confirmada' })
+
+    await usuario.click(screen.getByRole('button', { name: 'Hacer otra reserva' }))
+
+    expect(await screen.findByRole('heading', { name: 'Paso 1 de 3: Refugio y fechas' })).toHaveFocus()
+    expect(screen.getByRole('radio', { name: 'Refugio de Respomuso' })).not.toBeChecked()
+    expect(screen.queryByRole('complementary', { name: 'Tu reserva' })).not.toBeInTheDocument()
+  })
 })

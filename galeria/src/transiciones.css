@@ -4,19 +4,34 @@
 
 /* ---------- La foto que viaja entre la cuadrícula y la ficha ---------- */
 
-/* TODO (paso 3): con el elemento compartido ya funcionando, fíjate en la
-   foto a mitad de camino: la miniatura es cuadrada y la foto grande no.
-   1. ::view-transition-group(.foto-compartida): animation-duration de 0.5s
-      y animation-timing-function cubic-bezier(0.2, 0, 0, 1).
-   2. ::view-transition-old(.foto-compartida) y ::view-transition-new(.foto-compartida):
-      height: 100%, object-fit: cover y overflow: clip, para que las dos
-      imágenes llenen el grupo recortándose en vez de salirse de él. */
+::view-transition-group(.foto-compartida) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* La miniatura es cuadrada y la foto grande tiene su proporción: mientras el
+   grupo cambia de forma, las dos imágenes lo llenan recortándose, en vez de
+   estirarse. */
+::view-transition-old(.foto-compartida),
+::view-transition-new(.foto-compartida) {
+  height: 100%;
+  object-fit: cover;
+  overflow: clip;
+}
 
 /* ---------- La cabecera, siempre encima ---------- */
 
-/* TODO (paso 4): al volver a una foto de abajo, la galería tapa la cabecera
-   durante la animación. Dale a .cabecera view-transition-name: cabecera y a
-   ::view-transition-group(cabecera) un z-index: 1. */
+/* La cabecera es sticky y tapa el contenido al hacer scroll. Durante la
+   transición, en cambio, los grupos animados se pintan por encima de todo lo
+   demás, y la galería taparía la cabecera. Con su propio nombre (estático:
+   no se anima, solo se aparta) y un z-index, se queda delante. */
+.cabecera {
+  view-transition-name: cabecera;
+}
+
+::view-transition-group(cabecera) {
+  z-index: 1;
+}
 
 /* ---------- Según la dirección: adelante entra por la derecha ---------- */
 
@@ -74,7 +89,11 @@
 
 /* ---------- Para quien pide menos movimiento ---------- */
 
-/* TODO (paso 7): React no apaga las animaciones a quien ha pedido menos
-   movimiento en su sistema. Con @media (prefers-reduced-motion: reduce),
-   pon animation: none !important a ::view-transition-group(*),
-   ::view-transition-old(*) y ::view-transition-new(*). */
+/* React no lo hace por ti: sin esta regla, se anima igual (lección 55). */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

@@ -1,3 +1,4 @@
+import type { MouseEvent } from 'react'
 import { useFormStatus } from 'react-dom'
 import type { Paso } from './tipos'
 
@@ -15,11 +16,12 @@ export default function BotonesPaso({ paso }: { paso: Paso }) {
   const volviendo = data?.get('intencion') === 'atras'
   const [texto, textoEnviando] = TEXTOS[paso]
 
-  // TODO (paso 4): mientras se envía, los botones están desactivados con
-  // disabled, y un botón desactivado pierde el foco: va a parar al <body>.
-  // Cámbialo por aria-disabled={pending || undefined} y un onClick que, si
-  // pending, llame a evento.preventDefault(): así no se envía dos veces y el
-  // foco se queda en el botón.
+  // Mientras se envía, los botones no hacen nada. Con aria-disabled en vez
+  // de disabled: un botón desactivado pierde el foco, y quien usa el teclado
+  // o un lector de pantalla se quedaría sin saber dónde está.
+  function siEstaOcupado(evento: MouseEvent<HTMLButtonElement>) {
+    if (pending) evento.preventDefault()
+  }
 
   return (
     <div className="botones">
@@ -30,7 +32,8 @@ export default function BotonesPaso({ paso }: { paso: Paso }) {
         name="intencion"
         value="seguir"
         className="boton-principal"
-        disabled={pending}
+        aria-disabled={pending || undefined}
+        onClick={siEstaOcupado}
       >
         {pending && !volviendo ? textoEnviando : texto}
       </button>
@@ -40,7 +43,8 @@ export default function BotonesPaso({ paso }: { paso: Paso }) {
           name="intencion"
           value="atras"
           className="boton-secundario"
-          disabled={pending}
+          aria-disabled={pending || undefined}
+          onClick={siEstaOcupado}
         >
           Atrás
         </button>

@@ -18,10 +18,31 @@ type Props = {
 }
 
 export default function Metadatos({ titulo, descripcion, url, imagen, tipo, articulo, tituloPagina }: Props) {
-  // TODO (paso 4): además del título, la descripción (name="description"),
-  // la URL canónica (<link rel="canonical">) y las etiquetas Open Graph
-  // (property="og:..."): site_name, locale, type, title, description, url,
-  // image con su width, height y alt, las de article: si es un artículo y
-  // twitter:card. React las sube todas al <head>.
-  return <title>{tituloPagina ?? `${titulo} · Caja Baja`}</title>
+  return (
+    <>
+      <title>{tituloPagina ?? `${titulo} · Caja Baja`}</title>
+      <meta name="description" content={descripcion} />
+      <link rel="canonical" href={url} />
+
+      {/* Open Graph (lección 4 de HTML): con property, no con name */}
+      <meta property="og:site_name" content="Caja Baja" />
+      <meta property="og:locale" content="es_ES" />
+      <meta property="og:type" content={tipo} />
+      <meta property="og:title" content={titulo} />
+      <meta property="og:description" content={descripcion} />
+      <meta property="og:url" content={url} />
+      <meta property="og:image" content={imagen} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content={`${titulo}. Caja Baja, revista de tipografía e imprenta.`} />
+      {articulo && (
+        <>
+          <meta property="article:published_time" content={articulo.publicado} />
+          <meta property="article:section" content={articulo.seccion} />
+          <meta name="author" content={articulo.autoria} />
+        </>
+      )}
+      <meta name="twitter:card" content="summary_large_image" />
+    </>
+  )
 }

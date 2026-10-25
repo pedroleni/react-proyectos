@@ -1,24 +1,34 @@
-// Es crearElementoTarea() de vista.js, pero descrito con JSX en vez de
-// construido con createElement.
+import { useTareasDispatch } from '../TareasContext'
 
-// TODO (paso 3): mueve aquí el formateador de fechas de vista.js:
-//   const formateadorFecha = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' })
+const formateadorFecha = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' })
 
+// Es crearElementoTarea() de vista.js: el mismo <li>, descrito en vez de
+// construido pieza a pieza. Sin dataset.id ni delegación de eventos: cada
+// botón sabe a qué tarea pertenece porque la recibe en sus props.
 export default function Tarea({ tarea }) {
-  // TODO (paso 3): consigue dispatch con useTareasDispatch() (de
-  // '../TareasContext') y devuelve el mismo <li> que construía
-  // crearElementoTarea():
-  // - <li> con className 'tarea', o 'tarea completada' si está completada.
-  // - <input type="checkbox" className="tarea-checkbox"> con
-  //   checked={tarea.completada}, un onChange que despache
-  //   { type: 'alternada', id: tarea.id } y este aria-label:
-  //   `Marcar "${tarea.texto}" como ${tarea.completada ? 'pendiente' : 'completada'}`
-  // - <span className="tarea-texto"> con el texto.
-  // - <time className="tarea-fecha" dateTime={tarea.creadaEn}> con
-  //   formateadorFecha.format(new Date(tarea.creadaEn)).
-  // - <button type="button" className="tarea-borrar"> con el texto ×, el
-  //   aria-label `Borrar "${tarea.texto}"` y un onClick que despache
-  //   { type: 'borrada', id: tarea.id }.
-  // Sin dataset.id ni delegación: cada manejador ya sabe de qué tarea es.
-  return <li className="tarea">{tarea.texto}</li>
+  const dispatch = useTareasDispatch()
+
+  return (
+    <li className={tarea.completada ? 'tarea completada' : 'tarea'}>
+      <input
+        type="checkbox"
+        className="tarea-checkbox"
+        checked={tarea.completada}
+        onChange={() => dispatch({ type: 'alternada', id: tarea.id })}
+        aria-label={`Marcar "${tarea.texto}" como ${tarea.completada ? 'pendiente' : 'completada'}`}
+      />
+      <span className="tarea-texto">{tarea.texto}</span>
+      <time className="tarea-fecha" dateTime={tarea.creadaEn}>
+        {formateadorFecha.format(new Date(tarea.creadaEn))}
+      </time>
+      <button
+        type="button"
+        className="tarea-borrar"
+        aria-label={`Borrar "${tarea.texto}"`}
+        onClick={() => dispatch({ type: 'borrada', id: tarea.id })}
+      >
+        ×
+      </button>
+    </li>
+  )
 }

@@ -1,5 +1,7 @@
-import { Link } from 'react-router'
-import { SECCIONES, type Seccion } from '../secciones'
+import { ViewTransition } from 'react'
+import { SECCIONES, posicionDe, type Seccion } from '../secciones'
+import { ADELANTE, ATRAS, NOMBRE_INDICADOR } from '../transiciones'
+import EnlaceConTipo from './EnlaceConTipo'
 
 interface Props {
   actual: Seccion
@@ -13,20 +15,28 @@ export default function Pestanas({ actual, destinos }: Props) {
       <ul>
         {SECCIONES.map((seccion) => {
           const activa = seccion.id === actual
+          // La dirección sale de la posición: una pestaña a la derecha de la
+          // actual entra por la derecha.
+          const tipo = posicionDe(seccion.id) > posicionDe(actual) ? ADELANTE : ATRAS
 
-          // TODO (paso 6): las pestañas, con dirección.
-          // 1. Cambia el <Link> por un <EnlaceConTipo> con tipo ADELANTE si la
-          //    pestaña está a la derecha de la actual (compara posicionDe) y
-          //    ATRAS si está a la izquierda.
-          // 2. Envuelve la raya en <ViewTransition name={NOMBRE_INDICADOR}
-          //    share="raya" default="none">: solo hay una montada a la vez, y al
-          //    cambiar de pestaña se desliza de una a otra.
           return (
             <li key={seccion.id}>
-              <Link to={destinos[seccion.id]} className="pestana" aria-current={activa ? 'page' : undefined}>
+              <EnlaceConTipo
+                to={destinos[seccion.id]}
+                tipo={tipo}
+                className="pestana"
+                aria-current={activa ? 'page' : undefined}
+              >
                 {seccion.nombre}
-                {activa && <span className="pestana-indicador" aria-hidden="true" />}
-              </Link>
+                {/* Solo la pestaña activa tiene raya. Al cambiar de pestaña, se
+                    desmonta en una y se monta en otra con el mismo name:
+                    un elemento compartido que se desliza de una a otra. */}
+                {activa && (
+                  <ViewTransition name={NOMBRE_INDICADOR} share="raya" default="none">
+                    <span className="pestana-indicador" aria-hidden="true" />
+                  </ViewTransition>
+                )}
+              </EnlaceConTipo>
             </li>
           )
         })}

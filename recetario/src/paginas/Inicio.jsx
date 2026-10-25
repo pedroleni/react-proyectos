@@ -4,7 +4,7 @@ import TarjetaReceta from '../componentes/TarjetaReceta.jsx'
 import { useRecetasDestacadas } from '../consultas.js'
 
 export default function Inicio() {
-  // TODO (paso 5): pide las tres recetas destacadas con useRecetasDestacadas().
+  const { data: recetas, isPending, error, refetch } = useRecetasDestacadas()
 
   return (
     <>
@@ -26,13 +26,19 @@ export default function Inicio() {
           <h2>Tres recetas para descubrir</h2>
         </div>
 
-        {/* TODO (paso 5): pinta un estado por rama:
-            - mientras no hay datos, <MensajeEstado>Buscando recetas apetitosas…</MensajeEstado>;
-            - si falla, <MensajeError error={error} onReintentar={refetch} />;
-            - si llega vacía, <MensajeEstado>No hay recetas destacadas disponibles.</MensajeEstado>;
-            - con recetas, un <div className="rejilla-recetas rejilla-destacadas">
-              con una <TarjetaReceta> por receta (key: receta.idMeal). */}
-        <MensajeEstado>Aquí irán tres recetas al azar (paso 5).</MensajeEstado>
+        {isPending ? (
+          <MensajeEstado>Buscando recetas apetitosas…</MensajeEstado>
+        ) : error ? (
+          <MensajeError error={error} onReintentar={refetch} />
+        ) : recetas.length === 0 ? (
+          <MensajeEstado>No hay recetas destacadas disponibles.</MensajeEstado>
+        ) : (
+          <div className="rejilla-recetas rejilla-destacadas">
+            {recetas.map((receta) => (
+              <TarjetaReceta key={receta.idMeal} receta={receta} />
+            ))}
+          </div>
+        )}
       </section>
     </>
   )

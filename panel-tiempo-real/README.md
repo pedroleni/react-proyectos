@@ -19,10 +19,8 @@ midiendo cada paso:
 - **TanStack Virtual** (`src/componentes/TablaVirtual.tsx`): en el DOM, solo
   las filas que se ven.
 
-Esta es la rama `main`, el punto de partida: el proyecto montado, con los
-estilos, los tests y los componentes pequeños hechos, y un `// TODO (paso N)`
-donde va el trabajo de cada paso de la lección. La rama `solucion` tiene el
-proyecto completo.
+Esta es la rama `solucion`. La rama `main` tiene el mismo proyecto con
+`// TODO (paso N)` donde va el trabajo de cada paso de la lección.
 
 ## Requisitos
 

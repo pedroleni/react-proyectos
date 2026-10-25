@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import type { ReactNode } from 'react'
+import { useId, useRef, useState } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 
 export type Pestana = {
   id: string
@@ -17,41 +17,81 @@ type PropsPestanas = {
 
 // Patrón Tabs de la APG, con activación automática:
 // https://www.w3.org/WAI/ARIA/apg/patterns/tabs/
-//
-// Ahora funciona con el ratón, pero para un lector de pantalla son botones
-// sueltos y un texto, y con el teclado solo se llega a ellos con Tab.
-export function Pestanas({ pestanas, inicial = pestanas[0]?.id }: PropsPestanas) {
+export function Pestanas({ etiqueta, pestanas, inicial = pestanas[0]?.id }: PropsPestanas) {
+  const base = useId()
   const [activa, setActiva] = useState(inicial)
+  const lista = useRef<HTMLDivElement>(null)
 
-  // TODO (paso 1): un prefijo con useId para los ids de pestañas y paneles,
-  // para que dos grupos de pestañas en la misma página no choquen.
+  const idPestana = (id: string) => `${base}-pestana-${id}`
+  const idPanel = (id: string) => `${base}-panel-${id}`
 
-  // TODO (paso 1): manejarTeclas. Flecha derecha e izquierda pasan a la
-  // pestaña siguiente o anterior, dando la vuelta en los extremos; Inicio y
-  // Fin van a la primera y a la última. Además de activarla, hay que
-  // enfocarla (la pestaña ya está en el DOM: puedes enfocarla en el acto).
+  function activar(indice: number) {
+    const pestana = pestanas[indice]
+    setActiva(pestana.id)
+    // La pestaña ya existe en el DOM: se puede enfocar sin esperar al render.
+    lista.current?.querySelectorAll<HTMLElement>('[role="tab"]')[indice]?.focus()
+  }
+
+  function manejarTeclas(evento: KeyboardEvent<HTMLDivElement>) {
+    const actual = pestanas.findIndex((p) => p.id === activa)
+    const ultima = pestanas.length - 1
+    switch (evento.key) {
+      case 'ArrowRight':
+        activar(actual === ultima ? 0 : actual + 1)
+        break
+      case 'ArrowLeft':
+        activar(actual === 0 ? ultima : actual - 1)
+        break
+      case 'Home':
+        activar(0)
+        break
+      case 'End':
+        activar(ultima)
+        break
+      default:
+        return
+    }
+    evento.preventDefault()
+  }
 
   return (
     <div className="kit-pestanas">
-      {/* TODO (paso 1): role="tablist", la prop etiqueta como aria-label y onKeyDown */}
-      <div className="kit-pestanas-lista">
+      <div
+        ref={lista}
+        role="tablist"
+        aria-label={etiqueta}
+        className="kit-pestanas-lista"
+        onKeyDown={manejarTeclas}
+      >
         {pestanas.map((p) => (
-          // TODO (paso 1): role="tab", id, aria-selected, aria-controls y
-          // tabIndex: 0 en la activa y -1 en las demás (foco itinerante).
-          <button key={p.id} type="button" className="kit-pestana" onClick={() => setActiva(p.id)}>
+          <button
+            key={p.id}
+            id={idPestana(p.id)}
+            type="button"
+            role="tab"
+            aria-selected={p.id === activa}
+            aria-controls={idPanel(p.id)}
+            tabIndex={p.id === activa ? 0 : -1}
+            className="kit-pestana"
+            onClick={() => setActiva(p.id)}
+          >
             {p.titulo}
           </button>
         ))}
       </div>
-      {/* TODO (paso 1): pinta todos los paneles con role="tabpanel", id,
-          aria-labelledby y tabIndex={0}, y oculta con hidden los que no tocan. */}
-      {pestanas
-        .filter((p) => p.id === activa)
-        .map((p) => (
-          <div key={p.id} className="kit-pestanas-panel">
-            {p.contenido}
-          </div>
-        ))}
+      {pestanas.map((p) => (
+        <div
+          key={p.id}
+          id={idPanel(p.id)}
+          role="tabpanel"
+          aria-labelledby={idPestana(p.id)}
+          tabIndex={0}
+          hidden={p.id !== activa}
+          className="kit-pestanas-panel"
+        >
+          {p.contenido}
+        </div>
+      ))}
     </div>
   )
 }

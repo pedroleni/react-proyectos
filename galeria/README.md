@@ -4,27 +4,49 @@
 
 Proyecto 97 del temario de React de [Tech Study Tracker](https://www.techstudytracker.com).
 
-**Esta es la rama `main`**: el punto de partida. La galería ya funciona (rutas,
-cuadrícula, ficha de cada foto, formulario y estilos), pero nada se anima y
-las pestañas pierden lo que tenían al cambiar de una a otra. Lo que falta
-está marcado con `TODO (paso N)`, con el mismo número que el paso de la
-lección. La rama [`solucion`](../../tree/solucion/galeria) tiene la
-implementación completa, por si te atascas.
+**Esta es la rama `solucion`**: la implementación completa. La rama
+[`main`](../../tree/main/galeria) tiene el punto de partida, con un
+`TODO (paso N)` en cada sitio que tienes que construir.
+
+«Luz del Norte», la exposición de invierno de una asociación fotográfica de
+Gijón: doce fotos en una cuadrícula, la ficha de cada una y dos pestañas más,
+«Participa» y «Visita». Todo lo que se mueve lo anima el navegador con la
+View Transition API, coordinada por React:
+
+- **Elemento compartido**: la miniatura crece hasta la foto grande al abrirla
+  y vuelve a su sitio al cerrarla (`<ViewTransition name>`).
+- **Dirección**: «Foto siguiente» entra por la derecha y «Foto anterior», por
+  la izquierda; lo mismo al cambiar de pestaña (`addTransitionType`).
+- **Pestañas que conservan su estado**: las tres están siempre montadas dentro
+  de un `<Activity>`. Lo que escribes en «Participa» y la foto que tenías
+  abierta en «Galería» siguen ahí al volver.
 
 
-## Los pasos
+## Qué hay dentro
 
-1. `src/App.tsx`: las tres pestañas, siempre montadas, cada una en un `<Activity>`.
-2. `src/App.tsx`: la galería recuerda la foto que tenías abierta.
-3. `src/paginas/Cuadricula.tsx`, `Detalle.tsx` y `transiciones.css`: el elemento compartido.
-4. `src/paginas/Cuadricula.tsx`, `Detalle.tsx` y `transiciones.css`: scroll y foco en efectos de layout.
-5. `src/componentes/EnlaceConTipo.tsx` y `Detalle.tsx`: anterior y siguiente, con dirección.
-6. `src/componentes/Pestanas.tsx` y `App.tsx`: las pestañas, con dirección y una raya que se desliza.
-7. `src/transiciones.css`: `prefers-reduced-motion`.
-
-`npm test` empieza con 7 tests en verde y 6 en rojo; los 13 pasan al terminar
-el paso 6. Las animaciones no las puede comprobar ningún test: míralas en el
-navegador.
+```
+public/fotos/               — las doce fotos (generadas con IA, ver más abajo)
+src/
+  main.tsx                  — StrictMode + BrowserRouter (navega en transiciones)
+  App.tsx                   — cabecera, pestañas y las tres secciones en <Activity>
+  secciones.ts              — las tres pestañas y a cuál pertenece cada URL
+  transiciones.ts           — tipos de transición, clases y nombres compartidos
+  transiciones.css          — las animaciones (::view-transition-*) y prefers-reduced-motion
+  estilos.css               — el resto de estilos
+  datos.ts                  — las doce fotos
+  componentes/
+    Foto.tsx                — la foto: <img> con su tamaño y un degradado mientras carga
+    EnlaceConTipo.tsx       — un enlace que navega con un tipo de transición
+    Pestanas.tsx            — las pestañas y su raya, que se desliza
+  paginas/
+    Galeria.tsx             — las rutas de la galería, con su propia ubicación
+    Cuadricula.tsx          — /                 las doce miniaturas
+    Detalle.tsx             — /foto/:id         la ficha, con anterior y siguiente
+    Participa.tsx           — /participa        formulario de propuestas
+    Visita.tsx              — /visita           horario
+    NoEncontrada.tsx        — cualquier otra dirección
+  pruebas/                  — Vitest + Testing Library
+```
 
 ## Las fotos y la exposición
 
@@ -45,7 +67,8 @@ mientras llegan.
   React Router 8 pide 22.22 y jsdom, con el que corren los tests, 22.22.2.
   Comprueba tu versión con `node --version`.
 - Para ver las animaciones, un navegador con la View Transition API y sus
-  tipos: Chrome o Edge 125, Safari 18.2 o Firefox 147 en adelante.
+  tipos: Chrome o Edge 125, Safari 18.2 o Firefox 147 en adelante. En uno
+  más antiguo la galería funciona igual, sin animar.
 
 ## Cómo ejecutarlo
 
@@ -57,7 +80,13 @@ npm run dev
 ```
 
 - `npm run dev`: servidor de desarrollo, en `http://localhost:5173`
-- `npm test`: los tests con Vitest y Testing Library
+- `npm test`: los tests (13): pestañas, rutas, foco y tipos de transición
 - `npm run build`: comprueba los tipos y construye en `dist/`
 - `npm run preview`: sirve ese build
 - `npm run lint`: Oxlint
+
+## Versiones
+
+React 19.3.1, React Router 8.5.0, Vite 8.3.5, TypeScript 6.0.3, Vitest
+5.0.5, Testing Library React 16.3.3, user-event 14.6.8, jest-dom 7.0.1,
+jsdom 30.1.3 y Oxlint 1.89.0.

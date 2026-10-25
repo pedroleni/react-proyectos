@@ -1,22 +1,30 @@
-import { Link, useLocation } from 'react-router'
+import { Activity, ViewTransition, useState, type ReactNode } from 'react'
+import { Link, useLocation, type Location } from 'react-router'
 import Pestanas from './componentes/Pestanas'
 import Galeria from './paginas/Galeria'
 import Participa from './paginas/Participa'
 import Visita from './paginas/Visita'
 import { seccionDe, type Seccion } from './secciones'
+import { ENTRADA, SALIDA } from './transiciones'
+
+const PORTADA: Location = { pathname: '/', search: '', hash: '', state: null, key: 'default' }
 
 export default function App() {
   const ubicacion = useLocation()
   const seccion = seccionDe(ubicacion.pathname)
 
-  // TODO (paso 2): que la galería recuerde dónde se quedó.
-  // Guarda en un estado la última ubicación de la galería (useState<Location>,
-  // con PORTADA como valor inicial si la app arranca en otra pestaña) y
-  // ajústala durante el render mientras la sección sea 'galeria' (lección 39).
-  // Pásasela a <Galeria> en vez de `ubicacion`, y usa su pathname como
-  // destino de la pestaña «Galería».
+  // La galería recuerda dónde se quedó: si te vas a «Participa» con una foto
+  // abierta, al volver sigue abierta. Mientras la galería se ve, su ubicación
+  // es la de la URL; se ajusta durante el render, sin efecto (lección 39).
+  const [ubicacionGaleria, setUbicacionGaleria] = useState<Location>(
+    seccion === 'galeria' ? ubicacion : PORTADA,
+  )
+  if (seccion === 'galeria' && ubicacion !== ubicacionGaleria) {
+    setUbicacionGaleria(ubicacion)
+  }
+
   const destinos: Record<Seccion, string> = {
-    galeria: '/',
+    galeria: ubicacionGaleria.pathname,
     participa: '/participa',
     visita: '/visita',
   }
@@ -32,19 +40,17 @@ export default function App() {
       </header>
 
       <main className="contenido">
-        {/* TODO (paso 1): las tres secciones, siempre montadas.
-            Con estos condicionales, la sección que no se ve se desmonta y
-            pierde su estado: lo escrito en «Participa», por ejemplo.
-            Escribe un componente Panel({ visible, children }) que envuelva a
-            sus hijos en <Activity mode={visible ? 'visible' : 'hidden'}>,
-            con un <div className="panel"> dentro, y úsalo para las tres.
-
-            TODO (paso 6): dentro del Activity de Panel, un <ViewTransition>
-            con enter={ENTRADA} y exit={SALIDA} (de transiciones.ts) alrededor
-            del <div className="panel">. */}
-        {seccion === 'galeria' && <Galeria ubicacion={ubicacion} />}
-        {seccion === 'participa' && <Participa />}
-        {seccion === 'visita' && <Visita />}
+        {/* Las tres pestañas están siempre montadas: la URL solo decide cuál
+            se ve. Activity esconde las demás sin perder su estado. */}
+        <Panel visible={seccion === 'galeria'}>
+          <Galeria ubicacion={ubicacionGaleria} />
+        </Panel>
+        <Panel visible={seccion === 'participa'}>
+          <Participa />
+        </Panel>
+        <Panel visible={seccion === 'visita'}>
+          <Visita />
+        </Panel>
       </main>
 
       <footer className="pie">
@@ -55,5 +61,18 @@ export default function App() {
         </p>
       </footer>
     </>
+  )
+}
+
+function Panel({ visible, children }: { visible: boolean; children: ReactNode }) {
+  return (
+    <Activity mode={visible ? 'visible' : 'hidden'}>
+      {/* Al mostrarse, entra; al esconderse, sale. Hacia qué lado lo dice el
+          tipo de la transición. Si cambia lo de dentro (abrir una foto), un
+          fundido: es el update, que por defecto es "auto". */}
+      <ViewTransition enter={ENTRADA} exit={SALIDA}>
+        <div className="panel">{children}</div>
+      </ViewTransition>
+    </Activity>
   )
 }

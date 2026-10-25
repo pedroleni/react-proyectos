@@ -1,9 +1,8 @@
-import { type RouteConfig, index } from '@react-router/dev/routes'
+import { type RouteConfig, index, route } from '@react-router/dev/routes'
 
 export default [
   index('routes/portada.tsx'),
-  // TODO (paso 1): registra las otras dos rutas, con route() de
-  // @react-router/dev/routes:
-  //   - articulos/:slug → routes/articulo.tsx
-  //   - * (cualquier otra dirección) → routes/no-encontrada.tsx
+  route('articulos/:slug', 'routes/articulo.tsx'),
+  // Cualquier otra dirección: la página «no encontrada», con su 404.
+  route('*', 'routes/no-encontrada.tsx'),
 ] satisfies RouteConfig

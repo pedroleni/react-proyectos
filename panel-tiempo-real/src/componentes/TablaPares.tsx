@@ -1,6 +1,5 @@
 import { useFavoritos } from '../favoritos'
 import { filtrarYOrdenar, type Orden } from '../mercado/filtrar'
-import type { Par } from '../mercado/tipos'
 import { useMercado } from '../mercado/useMercado'
 import TablaCompleta from './TablaCompleta'
 import TablaVirtual from './TablaVirtual'
@@ -13,11 +12,11 @@ interface TablaParesProps {
 }
 
 export default function TablaPares({ busqueda, orden, soloFavoritos, virtual }: TablaParesProps) {
-  // TODO (paso 4): lee la lista de pares del almacén con useMercado (mercado.lista),
-  // los favoritos con useFavoritos() y calcula los visibles con filtrarYOrdenar.
-  const lista: readonly Par[] = []
-  const favoritos: ReadonlySet<string> = new Set()
-  const visibles: Par[] = []
+  // Lee la lista entera del almacén: cada mensaje del WebSocket es una lista
+  // nueva y, por tanto, un render de este componente.
+  const lista = useMercado((mercado) => mercado.lista)
+  const favoritos = useFavoritos()
+  const visibles = filtrarYOrdenar(lista, { busqueda, orden, soloFavoritos, favoritos })
 
   if (lista.length === 0) {
     return <p className="mensaje-estado">Esperando los primeros datos del mercado…</p>

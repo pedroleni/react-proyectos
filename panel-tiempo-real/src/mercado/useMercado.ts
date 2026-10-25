@@ -24,9 +24,5 @@ function useAlmacen(): AlmacenMercado {
 // array recién creado (lo verás en los errores típicos).
 export function useMercado<T>(seleccionar: (mercado: Mercado) => T): T {
   const almacen = useAlmacen()
-  // TODO (paso 3): suscríbete al almacén con useSyncExternalStore. Recibe dos
-  // funciones: la de suscribirse (almacen.suscribir, que es siempre la misma)
-  // y la que lee el valor: aquí, el selector aplicado a almacen.leer().
-  // Mientras tanto, se lee una vez y nadie se entera de los cambios.
-  return seleccionar(almacen.leer())
+  return useSyncExternalStore(almacen.suscribir, () => seleccionar(almacen.leer()))
 }

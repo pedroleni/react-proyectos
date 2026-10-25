@@ -1,16 +1,17 @@
+import { useTareasVisibles } from '../TareasContext'
+import Tarea from './Tarea'
+
 export default function ListaTareas() {
-  // TODO (paso 3): lee las tareas que se ven con el filtro activo con
-  // useTareasVisibles() (de '../TareasContext').
+  const visibles = useTareasVisibles()
 
   return (
     <>
       <ul className="lista-tareas">
-        {/* TODO (paso 3): una <Tarea tarea={tarea} /> (de './Tarea') por
-            cada tarea visible, con key={tarea.id}. */}
+        {visibles.map((tarea) => (
+          <Tarea key={tarea.id} tarea={tarea} />
+        ))}
       </ul>
-      {/* TODO (paso 3): el mensaje solo tiene que salir cuando no hay
-          ninguna tarea visible. */}
-      <p className="mensaje-vacio">No hay tareas todavía.</p>
+      {visibles.length === 0 && <p className="mensaje-vacio">No hay tareas todavía.</p>}
     </>
   )
 }

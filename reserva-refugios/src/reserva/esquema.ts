@@ -1,56 +1,89 @@
 import { z } from 'zod'
+import { DIAS_DE_ANTELACION, primeraLlegada, ultimaLlegada } from './fechas'
 import { IDS_REFUGIOS } from './refugios'
 
-// Un solo esquema para toda la reserva. Los pasos del formulario y el
-// servidor recortarán de aquí lo que necesiten.
+// Paso 1 de la lección: un solo esquema para toda la reserva.
 //
-// TODO (paso 1): de momento cada campo solo dice su tipo, y los mensajes
-// de error salen en inglés. Añade a cada uno sus reglas y su mensaje:
-// - refugio: uno de IDS_REFUGIOS → 'Elige un refugio.'
-// - llegada: una fecha (con abort: true) → 'Elige el día de llegada.', y
-//   con .refine(), entre primeraLlegada() y ultimaLlegada() (de ./fechas) →
-//   `Se reserva desde mañana y hasta ${DIAS_DE_ANTELACION} días vista.`
-// - noches: entero de 1 a 3 → 'Elige cuántas noches.', 'Como mínimo, una
-//   noche.', 'Como máximo, tres noches seguidas.'
-// - personas: entero de 1 a 12 → 'Escribe cuántas personas sois.', 'Tiene
-//   que ser un número entero.', 'Como mínimo, una persona.', 'Para más de
-//   12 personas, llama al refugio.'
-// - nombre: recortado, 2 letras o más → 'Escribe el nombre de quien hace la reserva.'
-// - correo: 'Ese correo no parece válido.'
-// - telefono: recortado, /^[6789]\d{8}$/ → 'Nueve cifras, sin prefijo ni espacios.'
-// - federados: entero, 0 o más → 'Escribe cuántos tenéis licencia (0 si
-//   nadie).', 'Tiene que ser un número entero.', 'No puede ser negativo.'
-// - observaciones: recortado, 300 caracteres como mucho → 'Como mucho, 300 caracteres.'
-// - acepto: 'Para reservar, tienes que aceptar las normas del refugio.'
+// Cada campo, con sus reglas y sus mensajes, una sola vez. Los pasos del
+// formulario y el servidor recortan de aquí lo que necesitan, así que no
+// pueden contradecirse: si cambias una regla, cambia en todos los sitios.
 export const camposReserva = z.object({
-  refugio: z.enum(IDS_REFUGIOS),
-  llegada: z.iso.date(),
-  noches: z.coerce.number(),
-  personas: z.coerce.number(),
-  nombre: z.string(),
-  correo: z.email(),
-  telefono: z.string(),
-  federados: z.coerce.number(),
-  observaciones: z.string().default(''),
-  acepto: z.literal('on'),
+  // Paso «Refugio y fechas»
+  refugio: z.enum(IDS_REFUGIOS, 'Elige un refugio.'),
+  // abort: si no es una fecha, no tiene sentido mirar si está en plazo
+  llegada: z.iso
+    .date({ error: 'Elige el día de llegada.', abort: true })
+    .refine(
+      (fecha) => fecha >= primeraLlegada() && fecha <= ultimaLlegada(),
+      `Se reserva desde mañana y hasta ${DIAS_DE_ANTELACION} días vista.`,
+    ),
+  noches: z.coerce
+    .number({ error: 'Elige cuántas noches.' })
+    .int()
+    .min(1, 'Como mínimo, una noche.')
+    .max(3, 'Como máximo, tres noches seguidas.'),
+  personas: z.coerce
+    .number({ error: 'Escribe cuántas personas sois.' })
+    .int('Tiene que ser un número entero.')
+    .min(1, 'Como mínimo, una persona.')
+    .max(12, 'Para más de 12 personas, llama al refugio.'),
+
+  // Paso «Quién viene»
+  nombre: z.string().trim().min(2, 'Escribe el nombre de quien hace la reserva.'),
+  correo: z.email('Ese correo no parece válido.'),
+  telefono: z
+    .string()
+    .trim()
+    .regex(/^[6789]\d{8}$/, 'Nueve cifras, sin prefijo ni espacios.'),
+  federados: z.coerce
+    .number({ error: 'Escribe cuántos tenéis licencia (0 si nadie).' })
+    .int('Tiene que ser un número entero.')
+    .min(0, 'No puede ser negativo.'),
+  observaciones: z.string().trim().max(300, 'Como mucho, 300 caracteres.').default(''),
+
+  // Paso «Revisar y confirmar»: una casilla marcada llega como 'on' (lección 57)
+  acepto: z.literal('on', 'Para reservar, tienes que aceptar las normas del refugio.'),
 })
 
 export type CampoReserva = keyof typeof camposReserva.shape
 
-// TODO (paso 1): la regla que cruza dos pasos: no puede haber más federados
-// que personas ('No puede haber más federados que personas en el grupo.',
-// en el campo federados). Escríbela aparte, como una función y sus opciones,
-// para ponerla con .refine() en los esquemas que tengan los dos campos.
+// Una regla que cruza dos campos de pasos distintos: las personas se
+// eligen en el primer paso y los federados en el segundo. Va aparte porque
+// .pick() no funciona sobre un esquema que ya lleva un .refine().
+function federadosCaben(datos: { personas: number; federados: number }) {
+  return datos.federados <= datos.personas
+}
+const errorFederados = {
+  message: 'No puede haber más federados que personas en el grupo.',
+  path: ['federados'],
+}
 
-// TODO (paso 1): cada paso, recortado de camposReserva con .pick():
-// - esquemaPasoRefugio: refugio, llegada, noches y personas.
-// - esquemaPasoGrupo: personas, nombre, correo, telefono, federados y
-//   observaciones, con la regla de los federados.
-// - esquemaConfirmacion: acepto.
-// - esquemaReserva: todos los campos, con la regla de los federados.
-export const esquemaPasoRefugio = camposReserva
+/** Lo que se comprueba al pulsar «Ver plazas y seguir». */
+export const esquemaPasoRefugio = camposReserva.pick({
+  refugio: true,
+  llegada: true,
+  noches: true,
+  personas: true,
+})
+
+/** Lo que se comprueba al pulsar «Seguir» en «Quién viene». Lleva las
+ * personas del paso anterior para poder comparar con los federados. */
 export const esquemaPasoGrupo = camposReserva
-export const esquemaConfirmacion = camposReserva
-export const esquemaReserva = camposReserva
+  .pick({
+    personas: true,
+    nombre: true,
+    correo: true,
+    telefono: true,
+    federados: true,
+    observaciones: true,
+  })
+  .refine(federadosCaben, errorFederados)
+
+/** La casilla del último paso. */
+export const esquemaConfirmacion = camposReserva.pick({ acepto: true })
+
+/** La reserva entera: la comprueba la acción antes de enviarla y el
+ * servidor al recibirla. */
+export const esquemaReserva = camposReserva.refine(federadosCaben, errorFederados)
 
 export type DatosReserva = z.infer<typeof esquemaReserva>

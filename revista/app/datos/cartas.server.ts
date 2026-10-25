@@ -90,15 +90,28 @@ export type ResultadoValidacion =
  * ayudan a quien usa la página, pero esta es la comprobación que cuenta.
  */
 export function validarCarta(formData: FormData): ResultadoValidacion {
-  // TODO (paso 5): lee nombre, correo y texto del formData (sin espacios a los
-  // lados, y como texto vacío si no llegan) y comprueba, con estos mensajes:
-  //   nombre vacío    → 'Escribe tu nombre: firmamos todas las cartas.'
-  //   nombre largo    → `El nombre puede tener como mucho ${LIMITES.nombre} caracteres.`
-  //   correo inválido → 'Escribe un correo válido, como nombre@ejemplo.es. No lo publicaremos.'
-  //   texto corto     → `La carta tiene que tener al menos ${LIMITES.textoMinimo} caracteres.`
-  //   texto largo     → `La carta puede tener como mucho ${LIMITES.texto} caracteres.`
-  // Con algún error, devuelve { ok: false, errores, valores }; sin errores,
-  // { ok: true, carta: valores }.
-  void formData
-  throw new Error('Falta validarCarta (paso 5).')
+  const leer = (campo: CamposCarta) => {
+    const valor = formData.get(campo)
+    return typeof valor === 'string' ? valor.trim() : ''
+  }
+  const valores = { nombre: leer('nombre'), correo: leer('correo'), texto: leer('texto') }
+  const errores: Partial<Record<CamposCarta, string>> = {}
+
+  if (!valores.nombre) {
+    errores.nombre = 'Escribe tu nombre: firmamos todas las cartas.'
+  } else if (valores.nombre.length > LIMITES.nombre) {
+    errores.nombre = `El nombre puede tener como mucho ${LIMITES.nombre} caracteres.`
+  }
+
+  if (!CORREO.test(valores.correo)) {
+    errores.correo = 'Escribe un correo válido, como nombre@ejemplo.es. No lo publicaremos.'
+  }
+
+  if (valores.texto.length < LIMITES.textoMinimo) {
+    errores.texto = `La carta tiene que tener al menos ${LIMITES.textoMinimo} caracteres.`
+  } else if (valores.texto.length > LIMITES.texto) {
+    errores.texto = `La carta puede tener como mucho ${LIMITES.texto} caracteres.`
+  }
+
+  return Object.keys(errores).length > 0 ? { ok: false, errores, valores } : { ok: true, carta: valores }
 }

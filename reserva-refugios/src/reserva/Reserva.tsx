@@ -1,13 +1,14 @@
-import { useActionState, useId, useRef } from 'react'
+import { useActionState, useEffect, useId, useOptimistic, useRef } from 'react'
 import { avanzar, ESTADO_INICIAL } from './accion'
 import BotonesPaso from './BotonesPaso'
+import { esquemaConfirmacion } from './esquema'
 import PasoConfirmar from './PasoConfirmar'
 import PasoGrupo from './PasoGrupo'
 import PasoRefugio from './PasoRefugio'
 import Pasos from './Pasos'
 import ReservaHecha from './ReservaHecha'
 import type { DatosResumen } from './ResumenReserva'
-import type { Paso } from './tipos'
+import type { Noche, Paso } from './tipos'
 import TuReserva from './TuReserva'
 
 const TITULOS: Record<Paso, { antetitulo?: string; titulo: string }> = {
@@ -17,36 +18,52 @@ const TITULOS: Record<Paso, { antetitulo?: string; titulo: string }> = {
   hecha: { titulo: 'Reserva confirmada' },
 }
 
-// TODO (paso 5): retenerPlazas(noches, personas), una función pura que
-// devuelve las noches con las plazas de la reserva ya restadas de libres y
-// marcadas con retenidas: personas. Será la que use useOptimistic.
+/** Cómo se ven las noches mientras se confirma: con las plazas de la
+ * reserva ya restadas y marcadas como retenidas. Es pura, como un reductor. */
+function retenerPlazas(noches: Noche[], personas: number): Noche[] {
+  return noches.map((noche) => ({ ...noche, libres: noche.libres - personas, retenidas: personas }))
+}
 
 export default function Reserva() {
   const [estado, accion, isPending] = useActionState(avanzar, ESTADO_INICIAL)
 
-  // TODO (paso 5): encima de las plazas de verdad, las que se ven mientras
-  // se confirma. Cambia esta línea por useOptimistic(estado.noches,
-  // retenerPlazas), que devuelve las noches y la función para retenerlas.
-  const noches = estado.noches
+  // Paso 5 de la lección: encima de las plazas de verdad, las que se ven
+  // mientras se confirma. Cuando la acción termina, React las descarta solas.
+  const [noches, retenerOptimista] = useOptimistic(estado.noches, retenerPlazas)
 
   const idTitulo = useId()
   const titulo = useRef<HTMLHeadingElement>(null)
   const formulario = useRef<HTMLFormElement>(null)
   const avisos = useRef<HTMLDivElement>(null)
+  const pasoAnterior = useRef(estado.paso)
 
-  // TODO (paso 4): el foco, siempre en un sitio con sentido. Un efecto que
-  // se ejecute cada vez que cambie estado y lleve el foco:
-  // 1. al primer campo del formulario con aria-invalid="true", si lo hay;
-  // 2. si no, y el paso ha cambiado, al título (titulo.current). Para saber
-  //    si ha cambiado, guarda el paso anterior en una ref (empieza con
-  //    estado.paso, para no mover el foco al cargar la página);
-  // 3. si no, y hay un aviso, a la caja de avisos (avisos.current).
+  // Paso 4 de la lección: el foco, siempre en un sitio con sentido (lección 37).
+  // Se ejecuta cuando el estado nuevo ya está en pantalla, con sus errores y
+  // sus aria-describedby (lección 61).
+  useEffect(() => {
+    const primerCampoConError = formulario.current?.querySelector<HTMLElement>('[aria-invalid="true"]')
+    if (primerCampoConError) {
+      primerCampoConError.focus()
+    } else if (estado.paso !== pasoAnterior.current) {
+      // Paso nuevo: el foco, a su título, que dice en qué paso estás
+      titulo.current?.focus()
+    } else if (estado.aviso) {
+      avisos.current?.focus()
+    }
+    pasoAnterior.current = estado.paso
+  }, [estado])
 
-  // TODO (paso 5): la acción del formulario, enviar(formData). Si se está
-  // confirmando (paso 'confirmar' y no se ha pulsado «Atrás») y la casilla
-  // pasa esquemaConfirmacion, retén las plazas de Number(estado.valores.personas)
-  // con la función de useOptimistic. Después, siempre, accion(formData).
-  // Y pon enviar en el action del <form> en vez de accion.
+  // La acción del formulario. Primero lo optimista y después la acción de
+  // verdad, que entra en la cola de useActionState (lección 62).
+  function enviar(formData: FormData) {
+    const confirmando = estado.paso === 'confirmar' && formData.get('intencion') !== 'atras'
+    // Sin la casilla marcada no se llama al servidor: no hay nada que retener.
+    const conCasilla = esquemaConfirmacion.safeParse({ acepto: formData.get('acepto') ?? undefined }).success
+    if (confirmando && conCasilla) {
+      retenerOptimista(Number(estado.valores.personas))
+    }
+    accion(formData)
+  }
 
   const reteniendo = noches.some((noche) => noche.retenidas)
   const mensajeDeEstado = !isPending
@@ -91,7 +108,7 @@ export default function Reserva() {
 
           {/* Una key por paso: cada paso es un formulario nuevo, con sus
               valores iniciales (lección 26). */}
-          <form key={estado.paso} ref={formulario} action={accion} noValidate className="formulario">
+          <form key={estado.paso} ref={formulario} action={enviar} noValidate className="formulario">
             {estado.paso === 'refugio' && <PasoRefugio valores={estado.valores} errores={estado.errores} />}
             {estado.paso === 'grupo' && <PasoGrupo valores={estado.valores} errores={estado.errores} />}
             {estado.paso === 'confirmar' && (

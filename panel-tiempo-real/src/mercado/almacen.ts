@@ -52,6 +52,8 @@ export function crearPar(ticker: Ticker, anterior?: Par): Par {
 export function crearAlmacenMercado(abrir: AbrirFuente): AlmacenMercado {
   let mercado = MERCADO_VACIO
   const oyentes = new Set<() => void>()
+  let cerrar: (() => void) | null = null
+  let cierrePendiente: ReturnType<typeof setTimeout> | undefined
 
   function publicar(nuevo: Mercado) {
     mercado = nuevo
@@ -59,16 +61,26 @@ export function crearAlmacenMercado(abrir: AbrirFuente): AlmacenMercado {
   }
 
   function recibir(tickers: readonly Ticker[]) {
-    // TODO (paso 1): mezcla el lote con lo que ya hay y publica una instantánea nueva.
-    // - Recorre los tickers. Para cada uno, busca el par que ya había con su símbolo.
-    // - Si el que había es igual de nuevo o más (anterior.actualizado >= ticker.hora),
-    //   sáltalo: la foto puede llegar después que el primer mensaje del WebSocket.
-    // - Si no, guarda crearPar(ticker, anterior) en una copia de mercado.pares
-    //   (new Map(mercado.pares)), hecha una sola vez y solo si algo cambia.
-    //   Nunca modifiques un par ni el Map que ya había.
-    // - Si nada ha cambiado, no publiques nada. Si algo ha cambiado, publica
-    //   { ...mercado, pares, lista: [...pares.values()], ultimaHora, cambiosUltimoLote },
-    //   con la hora más reciente de los tickers y cuántos pares han cambiado.
+    // Un Map nuevo solo si algo cambia. Los pares que no llegan en el lote
+    // conservan su objeto, y su historial, tal cual: así se puede saber, sin
+    // mirar dentro, que su fila no ha cambiado.
+    let pares: Map<string, Par> | null = null
+    let cambios = 0
+    let ultimaHora = mercado.ultimaHora
+
+    for (const ticker of tickers) {
+      const anterior = (pares ?? mercado.pares).get(ticker.simbolo)
+      // La foto puede llegar después que el primer mensaje del WebSocket:
+      // un dato más viejo que el que ya tenemos no pisa nada.
+      if (anterior && anterior.actualizado >= ticker.hora) continue
+      pares ??= new Map(mercado.pares)
+      pares.set(ticker.simbolo, crearPar(ticker, anterior))
+      cambios++
+      ultimaHora = Math.max(ultimaHora ?? 0, ticker.hora)
+    }
+
+    if (pares === null) return
+    publicar({ ...mercado, pares, lista: [...pares.values()], ultimaHora, cambiosUltimoLote: cambios })
   }
 
   function cambiarEstado(estado: EstadoConexion) {
@@ -76,15 +88,22 @@ export function crearAlmacenMercado(abrir: AbrirFuente): AlmacenMercado {
   }
 
   function suscribir(avisar: () => void) {
-    // TODO (paso 1): apunta a avisar en oyentes y devuelve la función que lo da de baja.
-    // - Si la fuente no está abierta, ábrela al suscribirse:
-    //   abrir({ alRecibir: recibir, alCambiarEstado: cambiarEstado }) devuelve
-    //   la función que la cierra; guárdala.
-    // - Al dar de baja al último oyente, no cierres en el acto: programa el
-    //   cierre con setTimeout para ESPERA_CIERRE milisegundos después, y vuelve
-    //   a dejar mercado = MERCADO_VACIO al cerrar. Si alguien se suscribe antes,
-    //   cancela ese cierre (clearTimeout).
-    return () => {}
+    oyentes.add(avisar)
+    clearTimeout(cierrePendiente)
+    cerrar ??= abrir({ alRecibir: recibir, alCambiarEstado: cambiarEstado })
+
+    return () => {
+      oyentes.delete(avisar)
+      if (oyentes.size > 0) return
+      // No se cierra en el acto: StrictMode da de baja y vuelve a suscribir
+      // enseguida (lección 63), y cerrar un WebSocket que aún se está abriendo
+      // deja un error en la consola. Si en un segundo nadie vuelve, se cierra.
+      cierrePendiente = setTimeout(() => {
+        cerrar?.()
+        cerrar = null
+        mercado = MERCADO_VACIO
+      }, ESPERA_CIERRE)
+    }
   }
 
   return {

@@ -1,10 +1,12 @@
 import { haceCuanto } from '~/fechas'
+import { useAhora } from '~/reloj'
 
-/** «· anteayer», «· hace 3 semanas»: cuánto hace que se publicó. */
+/**
+ * «· anteayer», «· hace 3 semanas». Solo lo sabe el navegador: el servidor
+ * no pinta nada, y el texto aparece justo después de hidratar.
+ */
 export default function HaceCuanto({ fecha }: { fecha: string }) {
-  // TODO (paso 8): el servidor no sabe cuándo vas a leer la página. Si el HTML
-  // se generó antes (una caché, un prerenderizado), la hidratación falla.
-  // Lee el instante con useAhora() de ~/reloj: null en el servidor y al
-  // hidratar (y entonces no pintes nada), y la hora del navegador después.
-  return <span className="hace-cuanto"> · {haceCuanto(fecha, Date.now())}</span>
+  const ahora = useAhora()
+  if (ahora === null) return null
+  return <span className="hace-cuanto"> · {haceCuanto(fecha, ahora)}</span>
 }

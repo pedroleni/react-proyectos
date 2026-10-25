@@ -1,9 +1,11 @@
 import { http, HttpResponse } from 'msw/http'
 import { delay } from 'msw/utils/delay'
 import { z } from 'zod'
-import { camposReserva } from '../reserva/esquema'
+import { camposReserva, esquemaReserva } from '../reserva/esquema'
+import { formatearFecha } from '../reserva/fechas'
+import { buscarRefugio } from '../reserva/refugios'
 import { gastarProximaReserva, leerAjustes } from './ajustes'
-import { nochesDe } from './baseDeDatos'
+import { guardarReserva, nochesDe, otroGrupoSeAdelanta } from './baseDeDatos'
 
 // El servidor simulado: los manejadores de MSW (lección 84). Los mismos
 // responden en el navegador con npm run dev (main.tsx) y en Node con los
@@ -26,7 +28,7 @@ export const manejadores = [
   }),
 
   // POST /api/reservas con la reserva en JSON
-  http.post('/api/reservas', async () => {
+  http.post('/api/reservas', async ({ request }) => {
     // Qué le pasa a esta reserva se decide al llegar, no al contestar
     const proxima = gastarProximaReserva()
     await delay(leerAjustes().latencia)
@@ -34,21 +36,43 @@ export const manejadores = [
       return HttpResponse.json({ error: 'Error del servidor (simulado)' }, { status: 500 })
     }
 
-    // TODO (paso 2): el servidor no se fía de nadie.
-    // 1. Recibe { request } en el manejador, lee el cuerpo con
-    //    request.json() (si no es JSON, que quede en null) y valídalo con
-    //    esquemaReserva. Si no pasa: 422 con
-    //    { errores: z.flattenError(...).fieldErrors }.
-    // 2. Si proxima es 'sin-plazas', llama a otroGrupoSeAdelanta(datos)
-    //    (de ./baseDeDatos) antes de mirar las plazas.
-    // 3. Con nochesDe(...), busca la primera noche con menos plazas libres
-    //    que personas. Si la hay: 409 con { error, noches }. El error dice,
-    //    por ejemplo: «Mientras confirmabas, otra reserva se ha adelantado:
-    //    en el Refugio de Respomuso solo quedan 2 plazas la noche del domingo
-    //    15 de noviembre, y sois 4.» (buscarRefugio y formatearFecha te
-    //    dan el nombre y la fecha; cuidado con «1 plaza» y con «ninguna»).
-    // 4. Si hay sitio: guardarReserva(datos) y 201 con { reserva, noches },
-    //    con las noches ya actualizadas.
-    return HttpResponse.json({ error: 'Todavía no se pueden guardar reservas (paso 2)' }, { status: 501 })
+    // Paso 2 de la lección: el servidor no se fía de nadie. Vuelve a
+    // validar con el mismo esquema que el formulario: lo que llega puede
+    // no venir de tu formulario, o venir de una pestaña abierta desde ayer.
+    const cuerpo = await request.json().catch(() => null)
+    const resultado = esquemaReserva.safeParse(cuerpo)
+    if (!resultado.success) {
+      return HttpResponse.json({ errores: z.flattenError(resultado.error).fieldErrors }, { status: 422 })
+    }
+    const datos = resultado.data
+
+    if (proxima === 'sin-plazas') otroGrupoSeAdelanta(datos)
+
+    // Las plazas se comprueban aquí, en el momento de guardar: lo que vio
+    // el formulario hace un rato puede haber cambiado.
+    const noches = nochesDe(datos.refugio, datos.llegada, datos.noches)
+    const corta = noches.find((noche) => noche.libres < datos.personas)
+    if (corta) {
+      const refugio = buscarRefugio(datos.refugio)!
+      const quedan =
+        corta.libres === 0
+          ? 'no queda ninguna plaza'
+          : corta.libres === 1
+            ? 'solo queda 1 plaza'
+            : `solo quedan ${corta.libres} plazas`
+      return HttpResponse.json(
+        {
+          error: `Mientras confirmabas, otra reserva se ha adelantado: en el ${refugio.nombre} ${quedan} la noche del ${formatearFecha(corta.fecha)}, y sois ${datos.personas}.`,
+          noches,
+        },
+        { status: 409 },
+      )
+    }
+
+    const reserva = guardarReserva(datos)
+    return HttpResponse.json(
+      { reserva, noches: nochesDe(datos.refugio, datos.llegada, datos.noches) },
+      { status: 201 },
+    )
   }),
 ]

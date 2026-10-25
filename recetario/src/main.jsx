@@ -6,15 +6,26 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import App from './App.jsx'
 import './style.css'
 
-// TODO (paso 1): crea aquí, fuera de cualquier componente, la caché de toda la
-// aplicación: un QueryClient cuyas consultas den los datos por buenos 5 minutos
-// (staleTime) y reintenten una sola vez (retry).
+// La caché de toda la aplicación: una sola, fuera de cualquier componente.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Una receta no cambia de un minuto para otro: se da por buena 5 minutos.
+      staleTime: 5 * 60_000,
+      // Un solo reintento: si TheMealDB no responde, mejor decirlo pronto.
+      retry: 1,
+    },
+  },
+})
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    {/* TODO (paso 1): envuelve <App /> en un QueryClientProvider con tu cliente y,
-        dentro, en un BrowserRouter. Pon <ReactQueryDevtools /> dentro del
-        proveedor, al lado del router, para ver la caché por dentro. */}
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+      {/* El panel para ver la caché por dentro. No entra en el build de producción. */}
+      <ReactQueryDevtools />
+    </QueryClientProvider>
   </StrictMode>,
 )

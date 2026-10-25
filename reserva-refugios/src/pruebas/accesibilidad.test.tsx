@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import { describe, expect, it } from 'vitest'
+import { fijarOcupadas } from '../servidor/baseDeDatos'
 import { llegarAConfirmar, montarApp, rellenarRefugio } from './ayudas'
 
 /** Las reglas que incumple la página entera, con su explicación. */
@@ -42,7 +43,14 @@ describe('axe, en cada paso de la reserva', () => {
     expect(await problemas()).toEqual([])
   })
 
-  // TODO (paso 6): llega hasta «Reserva confirmada» (con fijarOcupadas, de
-  // ../servidor/baseDeDatos, para que haya sitio seguro) y pasa axe.
-  it.todo('la reserva confirmada')
+  it('la reserva confirmada', async () => {
+    fijarOcupadas('respomuso', '2026-11-14', 0)
+    const usuario = montarApp()
+    await llegarAConfirmar(usuario)
+    await usuario.click(screen.getByRole('checkbox', { name: 'He leído y acepto las normas del refugio' }))
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar reserva' }))
+    await screen.findByRole('heading', { name: 'Reserva confirmada' })
+
+    expect(await problemas()).toEqual([])
+  })
 })

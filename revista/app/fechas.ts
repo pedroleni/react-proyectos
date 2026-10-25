@@ -1,10 +1,10 @@
 // Fechas que se pintan igual en el servidor y en el navegador.
 
 /**
- * «21 de octubre de 2026 a las 9:30».
- * TODO (paso 7): en tu ordenador funciona, porque el servidor y el navegador
- * están en la misma zona horaria. Arranca el servidor en UTC, como uno de
- * producción (TZ=UTC npm run dev), mira la consola del navegador y arréglalo.
+ * «21 de octubre de 2026 a las 9:30». Con el idioma y la zona horaria fijos:
+ * la revista se publica en hora peninsular, y así el servidor (en UTC, en
+ * Virginia o donde sea) y el navegador (en Madrid o en Buenos Aires) escriben
+ * exactamente el mismo texto.
  */
 export function formatearFecha(iso: string): string {
   return new Date(iso).toLocaleString('es-ES', {
@@ -13,6 +13,7 @@ export function formatearFecha(iso: string): string {
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+    timeZone: 'Europe/Madrid',
   })
 }
 

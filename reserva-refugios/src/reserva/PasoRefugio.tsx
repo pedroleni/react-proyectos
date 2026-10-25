@@ -14,11 +14,8 @@ export default function PasoRefugio({ valores, errores }: Props) {
   return (
     <>
       {/* Un grupo de opciones de radio: el fieldset y su legend le dan nombre
-          al grupo.
-          TODO (paso 4): que el error se lea al entrar en el grupo:
-          aria-describedby en el fieldset, apuntando a idErrorRefugio, solo
-          cuando hay error. */}
-      <fieldset className="refugios">
+          al grupo, y el error se lee al entrar en él. */}
+      <fieldset className="refugios" aria-describedby={errores.refugio ? idErrorRefugio : undefined}>
         <legend>Refugio</legend>
         {errores.refugio && (
           <p id={idErrorRefugio} className="error">
@@ -37,7 +34,7 @@ export default function PasoRefugio({ valores, errores }: Props) {
                   name="refugio"
                   value={refugio.id}
                   defaultChecked={valores.refugio === refugio.id}
-                  // TODO (paso 4): aria-invalid, solo cuando hay error en refugio
+                  aria-invalid={errores.refugio ? true : undefined}
                   aria-labelledby={`${id}-${refugio.id}`}
                   aria-describedby={`${id}-${refugio.id}-zona`}
                 />

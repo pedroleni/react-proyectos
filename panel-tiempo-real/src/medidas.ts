@@ -23,9 +23,9 @@ const medidas: Medida[] = []
 let resumen: Resumen | null = null
 
 export const registrarRender: ProfilerOnRenderCallback = (_id, fase, duracionReal, duracionBase, _inicio, commit) => {
-  // TODO (paso 5): apunta una medida en el array medidas por cada commit, con
-  // duracionReal, duracionBase y commit (la hora del commit). El montaje
-  // inicial (fase 'mount') no cuenta: se mide lo que cuesta cada segundo de mercado.
+  // El montaje inicial no cuenta: se mide lo que cuesta cada segundo de mercado.
+  if (fase === 'mount') return
+  medidas.push({ real: duracionReal, base: duracionBase, hora: commit })
 }
 
 function calcularResumen(): Resumen | null {

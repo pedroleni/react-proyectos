@@ -11,36 +11,55 @@ import {
   obtenerReceta,
 } from './api.js'
 
-// TODO (paso 4): todas las claves en un solo sitio, de lo general a lo concreto.
+// Todas las claves en un solo sitio, de lo general a lo concreto.
 // Cada clave lleva todo lo que su función usa para pedir los datos.
 export const claves = {
   destacadas: ['recetas', 'destacadas'],
-  // busqueda: (texto) => …
-  // receta: (id) => …
-  // categorias: …
-  // recetasDeCategoria: (nombre) => …
+  busqueda: (texto) => ['recetas', 'busqueda', texto],
+  receta: (id) => ['recetas', 'detalle', id],
+  categorias: ['categorias'],
+  recetasDeCategoria: (nombre) => ['categorias', nombre, 'recetas'],
 }
 
 export function useRecetasDestacadas() {
-  // TODO (paso 4): useQuery con la clave de las destacadas y una queryFn que
-  // pase la signal a obtenerDestacadas. Son al azar: que no caduquen nunca
-  // (staleTime: Infinity), o un refresco en segundo plano las cambiaría delante de ti.
+  return useQuery({
+    queryKey: claves.destacadas,
+    queryFn: ({ signal }) => obtenerDestacadas(signal),
+    // Son al azar: si se volvieran a pedir (al volver a esta pestaña cuando ya
+    // están viejas, por ejemplo), cambiarían delante de ti. Nunca caducan; si
+    // nadie las usa durante cinco minutos (gcTime), la caché las borra.
+    staleTime: Infinity,
+  })
 }
 
 export function useBusquedaRecetas(texto) {
-  // TODO (paso 4): la búsqueda de texto. Sin texto no se pide nada (enabled), y
-  // mientras llega una búsqueda nueva se ven los resultados de la anterior
-  // (placeholderData: keepPreviousData).
+  return useQuery({
+    queryKey: claves.busqueda(texto),
+    queryFn: ({ signal }) => buscarPorNombre(texto, signal),
+    // Sin texto no hay nada que pedir.
+    enabled: texto !== '',
+    // Mientras llega la búsqueda nueva, se ven los resultados de la anterior.
+    placeholderData: keepPreviousData,
+  })
 }
 
 export function useReceta(id) {
-  // TODO (paso 4): la receta con ese id.
+  return useQuery({
+    queryKey: claves.receta(id),
+    queryFn: ({ signal }) => obtenerReceta(id, signal),
+  })
 }
 
 export function useCategorias() {
-  // TODO (paso 4): la lista de categorías.
+  return useQuery({
+    queryKey: claves.categorias,
+    queryFn: ({ signal }) => obtenerCategorias(signal),
+  })
 }
 
 export function useRecetasDeCategoria(nombre) {
-  // TODO (paso 4): las recetas de una categoría.
+  return useQuery({
+    queryKey: claves.recetasDeCategoria(nombre),
+    queryFn: ({ signal }) => filtrarPorCategoria(nombre, signal),
+  })
 }

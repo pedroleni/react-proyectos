@@ -24,21 +24,8 @@ imágenes de Codex): son un refugio genérico en el paisaje de cada sitio, no
 fotos de los refugios reales. En la página van con `alt=""`, porque siempre
 están junto al nombre del refugio y no añaden información.
 
-Esta es la rama `main`, el punto de partida: la aplicación arranca, pero
-pulsar «Ver plazas y seguir» todavía no hace nada. Cada sitio donde trabajas
-lleva un comentario `// TODO (paso N)` con el número del paso de la lección:
-
-1. `src/reserva/esquema.ts`: el esquema compartido.
-2. `src/servidor/manejadores.ts`: el servidor también valida.
-3. `src/reserva/accion.ts`: una acción para los tres pasos.
-4. `src/reserva/Campo.tsx`, `PasoRefugio.tsx`, `BotonesPaso.tsx` y
-   `Reserva.tsx`: que cada paso se entienda sin verlo.
-5. `src/reserva/Reserva.tsx`: la disponibilidad, optimista.
-6. `src/pruebas/App.test.tsx` y `accesibilidad.test.tsx`: tus tests (los
-   cuatro `it.todo`).
-
-`npm test` empieza con 29 tests en rojo, 3 en verde y 4 pendientes. La rama
-`solucion` tiene el proyecto completo, con sus 36 tests en verde.
+Esta es la rama `solucion`. La rama `main` tiene el mismo proyecto con
+`// TODO (paso N)` donde va el trabajo de cada paso de la lección.
 
 ## Requisitos
 

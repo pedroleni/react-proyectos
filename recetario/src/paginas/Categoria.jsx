@@ -5,17 +5,26 @@ import { useRecetasDeCategoria } from '../consultas.js'
 
 // La ruta hija /categorias/:nombre: las recetas de una categoría.
 export default function Categoria() {
-  // TODO (paso 8): lee nombre con useParams y pide sus recetas con useRecetasDeCategoria.
-  const nombre = '…'
+  const { nombre } = useParams()
+  const { data: recetas, isPending, error, refetch } = useRecetasDeCategoria(nombre)
 
   return (
     <div className="categoria">
       <title>{`${nombre} · Recetario`}</title>
       <h2>{nombre}</h2>
-      {/* TODO (paso 8): cargando, «Cargando recetas…»; error, MensajeError; sin
-          recetas, «No hay recetas disponibles en esta categoría.»; y si no, un
-          <div className="rejilla-recetas"> con una TarjetaReceta por receta. */}
-      <MensajeEstado>Aquí irán las recetas de la categoría (paso 8).</MensajeEstado>
+      {isPending ? (
+        <MensajeEstado>Cargando recetas…</MensajeEstado>
+      ) : error ? (
+        <MensajeError error={error} onReintentar={refetch} />
+      ) : recetas.length === 0 ? (
+        <MensajeEstado>No hay recetas disponibles en esta categoría.</MensajeEstado>
+      ) : (
+        <div className="rejilla-recetas">
+          {recetas.map((receta) => (
+            <TarjetaReceta key={receta.idMeal} receta={receta} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

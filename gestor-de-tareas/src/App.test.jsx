@@ -1,12 +1,9 @@
 // Tests de la aplicación entera con Testing Library (lección 83): montan
 // <App />, hacen lo que haría una persona y comprueban lo que vería. Ninguno
 // sabe que hay un reductor ni un contexto: buscan por rol, etiqueta y texto.
-//
-// Los cuatro primeros ya están escritos: se ponen en verde cuando terminas
-// los pasos 1 a 4. Los marcados con it.todo los escribes tú en el paso 5.
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 
 // Monta la aplicación en StrictMode, como main.jsx, y devuelve la persona
@@ -42,6 +39,23 @@ describe('Gestor de tareas', () => {
     expect(screen.getByLabelText('Nueva tarea')).toHaveFocus()
   })
 
+  it('añade una tarea al pulsar Intro', async () => {
+    const { usuario } = montarApp()
+
+    await usuario.type(screen.getByLabelText('Nueva tarea'), 'Renovar el DNI{Enter}')
+
+    expect(screen.getByRole('listitem')).toHaveTextContent('Renovar el DNI')
+  })
+
+  it('no añade una tarea que solo tiene espacios', async () => {
+    const { usuario } = montarApp()
+
+    await anadir(usuario, '   ')
+
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
+    expect(screen.getByText('0 tareas pendientes')).toBeInTheDocument()
+  })
+
   it('marca una tarea como completada y descuenta el contador', async () => {
     const { usuario } = montarApp()
     await anadir(usuario, 'Comprar pan')
@@ -52,13 +66,50 @@ describe('Gestor de tareas', () => {
     expect(screen.getByText('0 tareas pendientes')).toBeInTheDocument()
   })
 
-  // TODO (paso 5): escribe estos tests. Cambia it.todo('...') por
-  // it('...', async () => { ... }) y usa los de arriba como modelo.
-  it.todo('añade una tarea al pulsar Intro')
-  it.todo('no añade una tarea que solo tiene espacios')
-  it.todo('borra una tarea')
-  it.todo('filtra las pendientes y las completadas, y marca el filtro activo')
-  it.todo('deja el foco en la casilla que acabas de marcar')
+  it('borra una tarea', async () => {
+    const { usuario } = montarApp()
+    await anadir(usuario, 'Comprar pan')
+    await anadir(usuario, 'Renovar el DNI')
+
+    await usuario.click(screen.getByRole('button', { name: 'Borrar "Comprar pan"' }))
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1)
+    expect(screen.queryByText('Comprar pan')).not.toBeInTheDocument()
+    expect(screen.getByText('1 tarea pendiente')).toBeInTheDocument()
+  })
+
+  it('filtra las pendientes y las completadas, y marca el filtro activo', async () => {
+    const { usuario } = montarApp()
+    await anadir(usuario, 'Comprar pan')
+    await anadir(usuario, 'Renovar el DNI')
+    await usuario.click(screen.getByRole('checkbox', { name: 'Marcar "Renovar el DNI" como completada' }))
+
+    await usuario.click(screen.getByRole('button', { name: 'Pendientes' }))
+
+    expect(screen.getByRole('button', { name: 'Pendientes' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Todas' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getAllByRole('listitem')).toHaveLength(1)
+    expect(screen.getByRole('listitem')).toHaveTextContent('Comprar pan')
+
+    await usuario.click(screen.getByRole('button', { name: 'Completadas' }))
+
+    expect(screen.getByRole('listitem')).toHaveTextContent('Renovar el DNI')
+    // El contador cuenta todas las tareas, no las que se ven.
+    expect(screen.getByText('1 tarea pendiente')).toBeInTheDocument()
+  })
+
+  it('deja el foco en la casilla que acabas de marcar', async () => {
+    const { usuario } = montarApp()
+    await anadir(usuario, 'Comprar pan')
+    await anadir(usuario, 'Renovar el DNI')
+
+    const casilla = screen.getByRole('checkbox', { name: 'Marcar "Renovar el DNI" como completada' })
+    casilla.focus()
+    await usuario.keyboard(' ')
+
+    expect(casilla).toBeChecked()
+    expect(casilla).toHaveFocus()
+  })
 })
 
 describe('Persistencia', () => {
@@ -73,9 +124,34 @@ describe('Persistencia', () => {
     expect(screen.getByRole('checkbox', { name: 'Marcar "Comprar pan" como pendiente' })).toBeChecked()
   })
 
-  // TODO (paso 5): prepara localStorage con localStorage.setItem(
-  // 'gestor-de-tareas:v1', ...) ANTES de montar la aplicación.
-  it.todo('arranca con las tareas que ya había guardadas')
-  it.todo('arranca vacía si lo guardado no es JSON')
-  it.todo('arranca vacía si lo guardado no es una lista')
+  it('arranca con las tareas que ya había guardadas', () => {
+    localStorage.setItem(
+      'gestor-de-tareas:v1',
+      JSON.stringify([{ id: 'a1', texto: 'Devolver los libros', completada: false, creadaEn: '2026-10-20T09:00:00.000Z' }]),
+    )
+
+    montarApp()
+
+    expect(screen.getByRole('listitem')).toHaveTextContent('Devolver los libros')
+    expect(screen.getByText('1 tarea pendiente')).toBeInTheDocument()
+  })
+
+  it('arranca vacía si lo guardado no es JSON', () => {
+    const consola = vi.spyOn(console, 'error').mockImplementation(() => {})
+    localStorage.setItem('gestor-de-tareas:v1', 'esto no es json')
+
+    montarApp()
+
+    expect(screen.getByText('No hay tareas todavía.')).toBeVisible()
+    expect(consola).toHaveBeenCalled()
+    consola.mockRestore()
+  })
+
+  it('arranca vacía si lo guardado no es una lista', () => {
+    localStorage.setItem('gestor-de-tareas:v1', '{}')
+
+    montarApp()
+
+    expect(screen.getByText('No hay tareas todavía.')).toBeVisible()
+  })
 })

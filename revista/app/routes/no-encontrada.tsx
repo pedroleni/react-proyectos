@@ -1,8 +1,11 @@
-import { Link } from 'react-router'
+import { data, Link } from 'react-router'
 
-// Una dirección que no es de ninguna otra ruta.
-// TODO (paso 3): la página dice «no existe», pero la respuesta sale con un
-// 200. Exporta un loader que devuelva data(null, { status: 404 }).
+// Una dirección que no es de ninguna otra ruta. El loader no tiene datos que
+// dar, pero sí un estado HTTP: con data() la respuesta sale con un 404, y la
+// página se pinta igual.
+export function loader() {
+  return data(null, { status: 404 })
+}
 
 export default function NoEncontrada() {
   return (

@@ -75,15 +75,27 @@ export const abrirBinance: AbrirFuente = ({ alRecibir, alCambiarEstado }) => {
 
   // 2. Los cambios: un mensaje por segundo con los pares que se han movido.
   function conectar() {
-    // TODO (paso 2): abre el WebSocket de URL_STREAM y guárdalo en socket.
-    // - onopen: pon intentos a 0 y avisa con alCambiarEstado('en-directo').
-    // - onmessage: evento.data es un texto JSON con un array de MiniTickerStream.
-    //   Quédate con los que acaban en MONEDA, conviértelos con desdeStream y
-    //   pásalos a alRecibir de una vez.
-    // - onclose: si la has cerrado tú (cerrada), no hagas nada. Si no, avisa
-    //   con 'reconectando' y vuelve a llamar a conectar con setTimeout, tras
-    //   1 s, 2 s, 4 s... (1000 * 2 ** intentos, como mucho ESPERA_MAXIMA).
-    //   Guarda el temporizador en reintento.
+    socket = new WebSocket(URL_STREAM)
+
+    socket.onopen = () => {
+      intentos = 0
+      alCambiarEstado('en-directo')
+    }
+
+    socket.onmessage = (evento: MessageEvent<string>) => {
+      const lote = JSON.parse(evento.data) as MiniTickerStream[]
+      alRecibir(lote.filter((t) => t.s.endsWith(MONEDA)).map(desdeStream))
+    }
+
+    // Binance corta cada conexión a las 24 horas, y la red se cae a veces:
+    // si no la hemos cerrado nosotros, se vuelve a abrir esperando cada vez más.
+    socket.onclose = () => {
+      if (cerrada) return
+      alCambiarEstado('reconectando')
+      const espera = Math.min(1000 * 2 ** intentos, ESPERA_MAXIMA)
+      intentos++
+      reintento = setTimeout(conectar, espera)
+    }
   }
 
   conectar()

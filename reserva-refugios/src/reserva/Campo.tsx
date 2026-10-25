@@ -17,17 +17,20 @@ type PropsCampo = {
   children: (props: PropsControl) => ReactNode
 }
 
+// Paso 4 de la lección: un campo que se entiende sin verlo (lecciones 37 y 61).
 export default function Campo({ etiqueta, ayuda, error, enLinea = false, children }: PropsCampo) {
   const id = useId()
   const idAyuda = `${id}-ayuda`
   const idError = `${id}-error`
 
-  // TODO (paso 4): la ayuda y el error se ven, pero un lector de pantalla
-  // no sabe que son de este campo. Pásale también al control:
-  // - aria-invalid: true, solo cuando hay error;
-  // - aria-describedby: los ids de la ayuda y del error que existan,
-  //   separados por un espacio (undefined si no hay ninguno).
-  const control = children({ id })
+  // La ayuda y el error se leen junto al nombre del campo. aria-invalid y la
+  // referencia al error solo existen cuando hay error.
+  const describe = [ayuda ? idAyuda : null, error ? idError : null].filter(Boolean).join(' ')
+  const control = children({
+    id,
+    'aria-invalid': error ? true : undefined,
+    'aria-describedby': describe || undefined,
+  })
 
   return (
     <div className={['campo', enLinea && 'en-linea', error && 'con-error'].filter(Boolean).join(' ')}>

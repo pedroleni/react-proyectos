@@ -49,9 +49,9 @@ export default function App({ virtualInicial = true }: AppProps) {
         />
 
         <div className="zona-tabla">
-          {/* TODO (paso 5): envuelve la tabla en un <Profiler id="Tabla"> que
-              llame a registrarRender después de cada commit. */}
-          <TablaPares busqueda={busqueda} orden={orden} soloFavoritos={soloFavoritos} virtual={virtual} />
+          <Profiler id="Tabla" onRender={registrarRender}>
+            <TablaPares busqueda={busqueda} orden={orden} soloFavoritos={soloFavoritos} virtual={virtual} />
+          </Profiler>
         </div>
 
         <Medidor />

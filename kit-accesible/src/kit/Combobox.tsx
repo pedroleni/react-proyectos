@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import type { ChangeEvent } from 'react'
+import { useEffect, useId, useState } from 'react'
+import type { ChangeEvent, KeyboardEvent } from 'react'
 import { normalizar } from './normalizar'
 
 type PropsCombobox = {
@@ -14,53 +14,85 @@ type PropsCombobox = {
 // Patrón Combobox de la APG, con autocompletado de lista:
 // https://www.w3.org/WAI/ARIA/apg/patterns/combobox/
 // https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-list/
-//
-// Ahora filtra mientras escribes y se elige con el ratón. Pero el
-// teclado no llega a las opciones y un lector de pantalla solo ve un
-// campo de texto y una lista que aparece y desaparece en silencio.
 export function Combobox({ etiqueta, opciones, valor, onCambiar, ayuda }: PropsCombobox) {
+  const id = useId()
   const [texto, setTexto] = useState(valor ?? '')
   const [abierto, setAbierto] = useState(false)
-
-  // TODO (paso 5): la opción marcada con las flechas, en un estado
-  // (activa, -1 si no hay ninguna). El foco no sale del campo: la opción
-  // marcada se señala con aria-activedescendant.
+  // La opción marcada con las flechas: el foco del DOM no se mueve
+  // del campo, se señala con aria-activedescendant.
+  const [activa, setActiva] = useState(-1)
 
   // Si el campo muestra la opción ya elegida, la lista las enseña todas.
   const consulta = texto === valor ? '' : normalizar(texto)
   const filtradas = opciones.filter((opcion) => normalizar(opcion).includes(consulta))
   const listaVisible = abierto && filtradas.length > 0
 
-  // TODO (paso 5): ids con useId. Este id fijo se repetiría si hubiera dos
-  // combobox en la misma página. Hacen falta para el campo, la lista, la
-  // ayuda y cada opción.
-  const idCampo = 'combobox-campo'
+  const idCampo = `${id}-campo`
+  const idLista = `${id}-lista`
+  const idAyuda = `${id}-ayuda`
+  const idOpcion = (indice: number) => `${id}-opcion-${indice}`
+  const idActiva = listaVisible && activa >= 0 ? idOpcion(activa) : undefined
 
-  // TODO (paso 5): un efecto que trae a la vista la opción marcada
-  // (scrollIntoView con block: 'nearest'; jsdom no lo tiene: usa ?.).
+  // aria-activedescendant no desplaza la lista como lo haría el foco:
+  // la opción marcada se trae a la vista a mano (jsdom no tiene scrollIntoView).
+  useEffect(() => {
+    if (idActiva) document.getElementById(idActiva)?.scrollIntoView?.({ block: 'nearest' })
+  }, [idActiva])
 
   function elegir(opcion: string) {
     setTexto(opcion)
     setAbierto(false)
+    setActiva(-1)
     onCambiar(opcion)
+  }
+
+  function cerrarLista() {
+    setAbierto(false)
+    setActiva(-1)
   }
 
   function manejarCambio(evento: ChangeEvent<HTMLInputElement>) {
     setTexto(evento.target.value)
     setAbierto(true)
+    setActiva(-1)
     if (evento.target.value.trim() === '') onCambiar(null)
   }
 
-  // TODO (paso 5): manejarTeclas. Flecha abajo y arriba abren la lista y
-  // marcan la siguiente o la anterior, dando la vuelta (Alt + flecha abajo
-  // solo abre); Intro elige la marcada o cierra; Escape cierra la lista y,
-  // si ya estaba cerrada, vacía el campo. Si Escape no hace nada, deja que
-  // el evento siga subiendo (por ejemplo, a un diálogo).
+  function manejarTeclas(evento: KeyboardEvent<HTMLInputElement>) {
+    const ultima = filtradas.length - 1
+    switch (evento.key) {
+      case 'ArrowDown':
+        setAbierto(true)
+        if (!evento.altKey) setActiva(listaVisible && activa < ultima ? activa + 1 : 0)
+        break
+      case 'ArrowUp':
+        setAbierto(true)
+        setActiva(listaVisible && activa > 0 ? activa - 1 : ultima)
+        break
+      case 'Enter':
+        if (listaVisible && activa >= 0) elegir(filtradas[activa])
+        else if (abierto) cerrarLista()
+        else return
+        break
+      case 'Escape':
+        if (abierto) cerrarLista()
+        else if (texto !== '') {
+          setTexto('')
+          onCambiar(null)
+        } else return // nada que hacer aquí: que siga subiendo (a un diálogo, por ejemplo)
+        evento.stopPropagation()
+        break
+      default:
+        return
+    }
+    evento.preventDefault()
+  }
 
-  // TODO (paso 5): cerrar la lista cuando el campo pierde el foco (onBlur).
-  // Cuando lo hagas, pulsar una opción con el ratón dejará de funcionar en
-  // el navegador: el mousedown quita el foco al campo antes del clic. La
-  // lista necesita onMouseDown con preventDefault.
+  let resumen = ''
+  if (abierto) {
+    if (filtradas.length === 0) resumen = 'Sin resultados'
+    else resumen = filtradas.length === 1 ? '1 resultado' : `${filtradas.length} resultados`
+  }
 
   return (
     <div className="kit-combobox">
@@ -68,21 +100,30 @@ export function Combobox({ etiqueta, opciones, valor, onCambiar, ayuda }: PropsC
         {etiqueta}
       </label>
       <div className="kit-combobox-caja">
-        {/* TODO (paso 5): role="combobox", aria-autocomplete="list",
-            aria-expanded, aria-controls, aria-activedescendant,
-            aria-describedby (la ayuda), onKeyDown y onBlur. */}
         <input
           id={idCampo}
           type="text"
+          role="combobox"
           autoComplete="off"
+          aria-autocomplete="list"
+          aria-expanded={listaVisible}
+          aria-controls={idLista}
+          aria-activedescendant={idActiva}
+          aria-describedby={ayuda ? idAyuda : undefined}
           className="kit-combobox-campo"
           value={texto}
           onChange={manejarCambio}
+          onKeyDown={manejarTeclas}
+          onBlur={cerrarLista}
         />
+        {/* Fuera del recorrido del Tab, como en el ejemplo de la APG:
+            sirve para abrir la lista con el dedo o el ratón. */}
         <button
           type="button"
           tabIndex={-1}
           aria-label={`Mostrar opciones de ${etiqueta.toLowerCase()}`}
+          aria-expanded={listaVisible}
+          aria-controls={idLista}
           className="kit-combobox-boton"
           onMouseDown={(evento) => evento.preventDefault()}
           onClick={() => {
@@ -92,20 +133,39 @@ export function Combobox({ etiqueta, opciones, valor, onCambiar, ayuda }: PropsC
         >
           ▾
         </button>
-        {/* TODO (paso 5): role="listbox" con nombre (aria-label) y, en cada
-            opción, role="option", id y aria-selected (la marcada). */}
-        <ul hidden={!listaVisible} className="kit-combobox-lista">
-          {filtradas.map((opcion) => (
-            <li key={opcion} className="kit-combobox-opcion" onClick={() => elegir(opcion)}>
+        <ul
+          id={idLista}
+          role="listbox"
+          aria-label={etiqueta}
+          hidden={!listaVisible}
+          className="kit-combobox-lista"
+          // Sin esto, el mousedown quita el foco al campo, el onBlur cierra
+          // la lista y el clic ya no llega a la opción.
+          onMouseDown={(evento) => evento.preventDefault()}
+        >
+          {filtradas.map((opcion, indice) => (
+            <li
+              key={opcion}
+              id={idOpcion(indice)}
+              role="option"
+              aria-selected={indice === activa}
+              className="kit-combobox-opcion"
+              onClick={() => elegir(opcion)}
+            >
               {opcion}
             </li>
           ))}
         </ul>
       </div>
-      {ayuda && <p className="kit-combobox-ayuda">{ayuda}</p>}
-      {/* TODO (paso 5): una región viva (role="status"), siempre en el DOM,
-          que diga cuántos resultados hay mientras la lista está abierta:
-          «Sin resultados», «1 resultado», «3 resultados». */}
+      {ayuda && (
+        <p id={idAyuda} className="kit-combobox-ayuda">
+          {ayuda}
+        </p>
+      )}
+      {/* La región viva existe desde el principio; solo cambia su texto (lección 37). */}
+      <p role="status" className="kit-combobox-resumen">
+        {resumen}
+      </p>
     </div>
   )
 }

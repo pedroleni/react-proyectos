@@ -1,15 +1,25 @@
-import { Link } from 'react-router'
+import { ViewTransition, useLayoutEffect, useRef } from 'react'
+import { Link, useLocation } from 'react-router'
 import Foto from '../componentes/Foto'
 import { FOTOS } from '../datos'
+import { nombreFoto } from '../transiciones'
 
 export default function Cuadricula() {
-  // TODO (paso 4): al volver de una foto, su miniatura, a la vista y con el foco.
-  // «Volver a la galería» deja en el state de la ubicación qué foto mirabas:
-  // (useLocation().state as { desde?: string } | null)?.desde
-  // Ponle una ref al enlace de esa foto y, en un useLayoutEffect que dependa
-  // de desde, llama a scrollIntoView({ block: 'center' }) y a
-  // focus({ preventScroll: true }). Tiene que ser de layout: un useEffect se
-  // ejecutaría cuando la animación ya ha terminado.
+  // «Volver a la galería» deja aquí qué foto estabas mirando.
+  const desde = (useLocation().state as { desde?: string } | null)?.desde
+  const enlaceDesde = useRef<HTMLAnchorElement>(null)
+
+  // Al volver de una foto, su miniatura tiene que estar a la vista: si no, la
+  // foto grande no tiene dónde aterrizar y no hay elemento compartido. Va en
+  // un efecto de layout porque React mide la página justo después de ellos;
+  // un useEffect llegaría cuando la animación ya ha terminado.
+  useLayoutEffect(() => {
+    const enlace = enlaceDesde.current
+    if (!enlace) return
+    enlace.scrollIntoView({ block: 'center' })
+    // Y el foco, al enlace de la foto de la que vienes (lección 37).
+    enlace.focus({ preventScroll: true })
+  }, [desde])
 
   return (
     <section className="galeria" aria-labelledby="titulo-galeria">
@@ -24,11 +34,16 @@ export default function Cuadricula() {
       <ul className="cuadricula">
         {FOTOS.map((foto) => (
           <li key={foto.id}>
-            <Link to={`/foto/${foto.id}`} className="miniatura">
-              {/* TODO (paso 3): el elemento compartido. Envuelve la foto en un
-                  <ViewTransition name={nombreFoto(foto.id)} share="foto-compartida">:
-                  el mismo name que la foto grande de Detalle. */}
-              <Foto foto={foto} forma="recorte" />
+            <Link
+              to={`/foto/${foto.id}`}
+              className="miniatura"
+              ref={foto.id === desde ? enlaceDesde : undefined}
+            >
+              {/* El mismo name que la foto grande de Detalle: al abrirla, React
+                  forma la pareja y el navegador la hace crecer hasta allí. */}
+              <ViewTransition name={nombreFoto(foto.id)} share="foto-compartida">
+                <Foto foto={foto} forma="recorte" />
+              </ViewTransition>
               <span className="miniatura-texto">
                 <span className="miniatura-titulo">{foto.titulo}</span>
                 <span className="miniatura-autoria">{foto.autoria}</span>

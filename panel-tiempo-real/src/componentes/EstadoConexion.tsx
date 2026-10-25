@@ -9,12 +9,11 @@ const TEXTOS: Record<Estado, string> = {
 }
 
 export default function EstadoConexion() {
-  // TODO (paso 3): lee del almacén, con useMercado y un selector para cada
-  // uno, el estado de la conexión, la hora del último lote y cuántos pares
-  // cambiaron en él (mercado.estado, mercado.ultimaHora y mercado.cambiosUltimoLote).
-  const estado: Estado = 'conectando'
-  const ultimaHora: number | null = null
-  const cambios: number = 0
+  // Tres lecturas con su selector: cada una devuelve un texto o un número, y
+  // React solo vuelve a renderizar si alguno es distinto del de antes.
+  const estado = useMercado((mercado) => mercado.estado)
+  const ultimaHora = useMercado((mercado) => mercado.ultimaHora)
+  const cambios = useMercado((mercado) => mercado.cambiosUltimoLote)
 
   return (
     <div className="estado-conexion">

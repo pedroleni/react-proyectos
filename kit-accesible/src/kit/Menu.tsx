@@ -1,5 +1,6 @@
-import { createContext, use, useState } from 'react'
-import type { ReactNode } from 'react'
+import { Fragment, createContext, use, useEffect, useId, useRef, useState } from 'react'
+import type { FragmentInstance, KeyboardEvent, ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 type ContextoMenu = { cerrar: () => void }
 
@@ -14,50 +15,122 @@ type PropsMenu = {
   children: ReactNode
 }
 
+type Foco = 'primera' | 'ultima'
+
 // Patrón Menu Button de la APG (el menú, con el patrón Menu):
 // https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/
 // https://www.w3.org/WAI/ARIA/apg/patterns/menubar/
-//
-// Ahora se abre con un clic, pero la tarjeta lo recorta (tiene
-// overflow: hidden), no se maneja con el teclado y no se anuncia como menú.
-export function Menu({ etiqueta, children }: PropsMenu) {
-  const [abierto, setAbierto] = useState(false)
+export function Menu({ etiqueta, 'aria-label': nombre, children }: PropsMenu) {
+  const idBoton = useId()
+  const idMenu = useId()
+  const boton = useRef<HTMLButtonElement>(null)
+  const menu = useRef<HTMLDivElement>(null)
+  const opciones = useRef<FragmentInstance>(null)
+  // null: cerrado. Si no, a qué opción va el foco al abrir.
+  const [abierto, setAbierto] = useState<Foco | null>(null)
+  const [posicion, setPosicion] = useState({ top: 0, right: 0 })
 
-  // TODO (paso 4): useId para el botón y el menú; refs al botón, al menú y
-  // a un <Fragment> que envuelva las opciones (para focus y focusLast).
-
-  // TODO (paso 4): abrir(foco). Mide el botón con getBoundingClientRect,
-  // guarda la posición (top y right) y abre recordando a qué opción va el
-  // foco: la primera o la última.
-
-  // TODO (paso 4): cerrar() también devuelve el foco al botón.
-  function cerrar() {
-    setAbierto(false)
+  function abrir(foco: Foco) {
+    // Se mide en el manejador: es cuando se sabe dónde está el botón.
+    const caja = boton.current!.getBoundingClientRect()
+    setPosicion({
+      top: caja.bottom + window.scrollY + 4,
+      right: document.documentElement.clientWidth - caja.right - window.scrollX,
+    })
+    setAbierto(foco)
   }
 
-  // TODO (paso 4): un efecto que, al abrir, enfoca la primera o la última
-  // opción, y escucha pointerdown en document: un clic fuera del menú y
-  // del botón cierra sin devolver el foco.
+  function cerrar() {
+    setAbierto(null)
+    boton.current?.focus()
+  }
 
-  // TODO (paso 4): teclas en el botón (flecha abajo abre en la primera,
-  // flecha arriba en la última) y en el menú (flechas con vuelta, Inicio,
-  // Fin, Escape cierra; Tab cierra sin preventDefault).
+  useEffect(() => {
+    if (!abierto) return
+    // El menú no sabe qué opciones le han pasado: el Fragment sí sabe
+    // cuál es la primera y la última que se pueden enfocar.
+    if (abierto === 'ultima') opciones.current?.focusLast()
+    else opciones.current?.focus()
+
+    // Un clic fuera cierra sin robar el foco: va a donde se ha pulsado.
+    function pulsarFuera(evento: PointerEvent) {
+      const objetivo = evento.target as Node
+      if (!menu.current?.contains(objetivo) && !boton.current?.contains(objetivo)) setAbierto(null)
+    }
+    document.addEventListener('pointerdown', pulsarFuera)
+    return () => document.removeEventListener('pointerdown', pulsarFuera)
+  }, [abierto])
+
+  function manejarTeclasBoton(evento: KeyboardEvent<HTMLButtonElement>) {
+    if (evento.key === 'ArrowDown') abrir('primera')
+    else if (evento.key === 'ArrowUp') abrir('ultima')
+    else return
+    evento.preventDefault()
+  }
+
+  function manejarTeclasMenu(evento: KeyboardEvent<HTMLDivElement>) {
+    const items = [...menu.current!.querySelectorAll<HTMLElement>('[role="menuitem"]')]
+    const actual = items.indexOf(document.activeElement as HTMLElement)
+    switch (evento.key) {
+      case 'ArrowDown':
+        items[actual === items.length - 1 ? 0 : actual + 1]?.focus()
+        break
+      case 'ArrowUp':
+        items[actual <= 0 ? items.length - 1 : actual - 1]?.focus()
+        break
+      case 'Home':
+        opciones.current?.focus()
+        break
+      case 'End':
+        opciones.current?.focusLast()
+        break
+      case 'Escape':
+        cerrar()
+        break
+      case 'Tab':
+        // Sin preventDefault: el foco vuelve al botón y el navegador
+        // sigue el Tab desde ahí, al siguiente elemento de la página.
+        cerrar()
+        return
+      default:
+        return
+    }
+    evento.preventDefault()
+  }
 
   return (
     <>
-      {/* TODO (paso 4): aria-haspopup="menu", aria-expanded, aria-controls
-          (solo con el menú abierto), aria-label y onKeyDown. */}
-      <button type="button" className="kit-menu-boton" onClick={() => setAbierto(!abierto)}>
+      <button
+        ref={boton}
+        id={idBoton}
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={abierto !== null}
+        aria-controls={abierto ? idMenu : undefined}
+        aria-label={nombre}
+        className="kit-menu-boton"
+        onClick={() => (abierto ? setAbierto(null) : abrir('primera'))}
+        onKeyDown={manejarTeclasBoton}
+      >
         {etiqueta}
       </button>
-      {/* TODO (paso 4): llévalo con createPortal a document.body, colocado
-          bajo el botón con la posición medida, con role="menu",
-          aria-labelledby (el id del botón) y onKeyDown. */}
-      {abierto && (
-        <div className="kit-menu" style={{ position: 'absolute', top: '3.5rem', right: '1rem' }}>
-          <MenuContext value={{ cerrar }}>{children}</MenuContext>
-        </div>
-      )}
+      {abierto &&
+        createPortal(
+          <div
+            ref={menu}
+            id={idMenu}
+            role="menu"
+            aria-labelledby={idBoton}
+            className="kit-menu"
+            style={{ position: 'absolute', ...posicion }}
+            onKeyDown={manejarTeclasMenu}
+          >
+            <MenuContext value={{ cerrar }}>
+              <Fragment ref={opciones}>{children}</Fragment>
+            </MenuContext>
+          </div>,
+          document.body,
+        )}
     </>
   )
 }
@@ -71,10 +144,11 @@ export function OpcionMenu({ onSeleccionar, children }: PropsOpcionMenu) {
   const menu = use(MenuContext)
   if (!menu) throw new Error('OpcionMenu tiene que ir dentro de un Menu')
 
-  // TODO (paso 4): role="menuitem" y tabIndex={-1}: el foco lo mueve el menú.
   return (
     <button
       type="button"
+      role="menuitem"
+      tabIndex={-1}
       className="kit-menu-opcion"
       onClick={() => {
         // Primero se cierra (el foco vuelve al botón) y después se actúa:

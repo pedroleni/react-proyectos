@@ -57,12 +57,71 @@ describe('Combobox', () => {
     expect(screen.getByRole('status')).toHaveTextContent('3 resultados')
   })
 
-  // TODO (paso 6): escribe estos tests. Cambia it.todo por it, con la
-  // función del test, como en los dos de arriba y en los de Dialogo.test.tsx.
-  it.todo('flecha abajo marca una opción con aria-activedescendant, sin mover el foco')
-  it.todo('Intro elige la opción marcada, cierra la lista y avisa')
-  it.todo('flecha arriba abre la lista en la última opción')
-  it.todo('Escape cierra la lista y, con la lista cerrada, vacía el campo')
-  it.todo('con el ratón, un clic en una opción la elige')
-  it.todo('sin coincidencias no hay lista, y se dice')
+  it('flecha abajo marca una opción con aria-activedescendant, sin mover el foco', async () => {
+    const { usuario, campo } = montar()
+    await usuario.type(campo, 'es')
+
+    await usuario.keyboard('{ArrowDown}')
+
+    const frances = screen.getByRole('option', { name: 'Francés' })
+    expect(campo).toHaveFocus()
+    expect(campo).toHaveAttribute('aria-activedescendant', frances.id)
+    expect(frances).toHaveAttribute('aria-selected', 'true')
+
+    await usuario.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}')
+    expect(campo).toHaveAttribute('aria-activedescendant', frances.id)
+  })
+
+  it('Intro elige la opción marcada, cierra la lista y avisa', async () => {
+    const { usuario, campo, alCambiar } = montar()
+    await usuario.type(campo, 'ale')
+
+    await usuario.keyboard('{ArrowDown}{Enter}')
+
+    expect(campo).toHaveValue('Alemán')
+    expect(campo).toHaveAttribute('aria-expanded', 'false')
+    expect(alCambiar).toHaveBeenLastCalledWith('Alemán')
+  })
+
+  it('flecha arriba abre la lista en la última opción', async () => {
+    const { usuario, campo } = montar()
+    await usuario.click(campo)
+
+    await usuario.keyboard('{ArrowUp}')
+
+    expect(campo).toHaveAttribute('aria-activedescendant', screen.getByRole('option', { name: 'Portugués' }).id)
+  })
+
+  it('Escape cierra la lista y, con la lista cerrada, vacía el campo', async () => {
+    const { usuario, campo } = montar()
+    await usuario.type(campo, 'gr')
+
+    await usuario.keyboard('{Escape}')
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(campo).toHaveValue('gr')
+
+    await usuario.keyboard('{Escape}')
+    expect(campo).toHaveValue('')
+  })
+
+  it('con el ratón, un clic en una opción la elige', async () => {
+    const { usuario, campo, alCambiar } = montar()
+    await usuario.type(campo, 'g')
+
+    await usuario.click(screen.getByRole('option', { name: 'Gallego' }))
+
+    expect(campo).toHaveValue('Gallego')
+    expect(alCambiar).toHaveBeenLastCalledWith('Gallego')
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  })
+
+  it('sin coincidencias no hay lista, y se dice', async () => {
+    const { usuario, campo } = montar()
+
+    await usuario.type(campo, 'klingon')
+
+    expect(campo).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Sin resultados')
+  })
 })

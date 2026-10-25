@@ -4,23 +4,29 @@ import { useReceta } from '../consultas.js'
 import { normalizarIngredientes } from '../utilidades.js'
 
 export default function Receta() {
-  // TODO (paso 6): lee el id de la URL con useParams y pide la receta con useReceta(id).
+  const { id } = useParams()
+  const { data: receta, isPending, error, refetch } = useReceta(id)
 
   return (
     <section className="pagina seccion-contenido">
-      {/* TODO (paso 6): un estado por rama:
-          - cargando: <MensajeEstado>Cargando la receta…</MensajeEstado>;
-          - error: <MensajeError error={error} onReintentar={refetch} />;
-          - la API responde, pero esa receta no existe (receta === null):
-            <MensajeEstado>No hemos encontrado esa receta.</MensajeEstado> y un
-            enlace «Buscar otra receta» a /buscar;
-          - con la receta: <DetalleReceta receta={receta} />. */}
-      <MensajeEstado>Aquí irá la receta (paso 6).</MensajeEstado>
+      {isPending ? (
+        <MensajeEstado>Cargando la receta…</MensajeEstado>
+      ) : error ? (
+        <MensajeError error={error} onReintentar={refetch} />
+      ) : receta === null ? (
+        // La ruta /receta/:id encaja con cualquier id; la receta puede no existir.
+        <>
+          <title>Receta no encontrada · Recetario</title>
+          <MensajeEstado>No hemos encontrado esa receta.</MensajeEstado>
+          <Link to="/buscar">Buscar otra receta</Link>
+        </>
+      ) : (
+        <DetalleReceta receta={receta} />
+      )}
     </section>
   )
 }
 
-// La ficha ya está hecha: solo hay que darle la receta.
 function DetalleReceta({ receta }) {
   const ingredientes = normalizarIngredientes(receta)
 

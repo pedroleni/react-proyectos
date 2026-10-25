@@ -1,8 +1,10 @@
-import type { CampoReserva } from './esquema'
+import { z } from 'zod'
+import { enviarReserva, pedirDisponibilidad } from './api'
+import { esquemaPasoGrupo, esquemaPasoRefugio, esquemaReserva, type CampoReserva } from './esquema'
 import { formatearFecha } from './fechas'
 import type { EstadoReserva, Noche, PasoConFormulario, Valores } from './tipos'
 
-// Una sola acción para todo el formulario.
+// Paso 3 de la lección: una sola acción para todo el formulario.
 //
 // useActionState la llama con el estado anterior y el FormData del paso que
 // se acaba de enviar. Según el paso y el botón pulsado, valida con su
@@ -75,38 +77,61 @@ export function mensajeSinPlazas(noche: Noche) {
 }
 
 async function comprobarPlazas(estado: EstadoReserva): Promise<EstadoReserva> {
-  // TODO (paso 3): «Ver plazas y seguir».
-  // 1. Valida estado.valores con esquemaPasoRefugio (safeParse). Si no pasa,
-  //    devuelve el estado con errores: z.flattenError(error).fieldErrors.
-  // 2. Pide las noches con pedirDisponibilidad(datos) (de ./api). Si lanza,
-  //    devuelve un aviso: 'No se ha podido consultar la disponibilidad.
-  //    Inténtalo otra vez en un momento.'
-  // 3. Si alguna noche tiene menos plazas libres que personas, devuelve el
-  //    error en personas con mensajeSinPlazas(noche).
-  // 4. Si todo va bien: paso 'grupo', los datos validados añadidos a
-  //    estado.datos y las noches.
-  return estado
+  const resultado = esquemaPasoRefugio.safeParse(estado.valores)
+  if (!resultado.success) {
+    return { ...estado, errores: z.flattenError(resultado.error).fieldErrors }
+  }
+  const datos = resultado.data
+
+  // Las plazas dependen del servidor: ninguna regla de Zod las sabe.
+  let noches: Noche[]
+  try {
+    noches = await pedirDisponibilidad(datos)
+  } catch {
+    return { ...estado, aviso: 'No se ha podido consultar la disponibilidad. Inténtalo otra vez en un momento.' }
+  }
+  const corta = noches.find((noche) => noche.libres < datos.personas)
+  if (corta) {
+    return { ...estado, errores: { personas: [mensajeSinPlazas(corta)] } }
+  }
+
+  return { ...estado, paso: 'grupo', datos: { ...estado.datos, ...datos }, noches }
 }
 
 function revisarGrupo(estado: EstadoReserva): EstadoReserva {
-  // TODO (paso 3): «Seguir». Valida estado.valores con esquemaPasoGrupo
-  // (fíjate en que valores trae también las personas del paso 1). Con
-  // errores, devuélvelos; si no, paso 'confirmar' y los datos añadidos.
-  return estado
+  // valores trae también las personas del paso anterior: la regla de los
+  // federados las necesita.
+  const resultado = esquemaPasoGrupo.safeParse(estado.valores)
+  if (!resultado.success) {
+    return { ...estado, errores: z.flattenError(resultado.error).fieldErrors }
+  }
+  return { ...estado, paso: 'confirmar', datos: { ...estado.datos, ...resultado.data } }
 }
 
 async function confirmar(estado: EstadoReserva): Promise<EstadoReserva> {
-  // TODO (paso 3): «Confirmar reserva».
-  // 1. Valida la reserva entera con esquemaReserva. Con errores, devuélvelos.
-  // 2. Envíala con enviarReserva(resultado.data) (de ./api) y, según el tipo
-  //    de la respuesta:
-  //    - 'confirmada': paso 'hecha', con sus noches y su reserva.
-  //    - 'sin-plazas': las noches de la respuesta (las de verdad) y el aviso
-  //      `${respuesta.mensaje} Vuelve atrás para cambiar la fecha, el
-  //      refugio o el número de personas.`
-  //    - 'rechazada': el aviso `El servidor no ha aceptado la reserva: ` con
-  //      todos los mensajes de respuesta.errores detrás, separados por espacios.
-  //    - 'error': el aviso 'No se ha podido confirmar la reserva y no se ha
-  //      guardado nada. Inténtalo otra vez.'
-  return estado
+  // La reserva entera, con el mismo esquema que usará el servidor
+  const resultado = esquemaReserva.safeParse(estado.valores)
+  if (!resultado.success) {
+    return { ...estado, errores: z.flattenError(resultado.error).fieldErrors }
+  }
+
+  const respuesta = await enviarReserva(resultado.data)
+  switch (respuesta.tipo) {
+    case 'confirmada':
+      return { ...estado, paso: 'hecha', noches: respuesta.noches, reserva: respuesta.reserva }
+    case 'sin-plazas':
+      // Las plazas de verdad sustituyen a las que se vieron en el paso 1
+      return {
+        ...estado,
+        noches: respuesta.noches,
+        aviso: `${respuesta.mensaje} Vuelve atrás para cambiar la fecha, el refugio o el número de personas.`,
+      }
+    case 'rechazada':
+      return {
+        ...estado,
+        aviso: `El servidor no ha aceptado la reserva: ${Object.values(respuesta.errores).flat().join(' ')}`,
+      }
+    case 'error':
+      return { ...estado, aviso: 'No se ha podido confirmar la reserva y no se ha guardado nada. Inténtalo otra vez.' }
+  }
 }

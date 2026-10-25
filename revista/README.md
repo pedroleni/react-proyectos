@@ -4,30 +4,22 @@
 
 Proyecto 98 del temario de React de [Tech Study Tracker](https://www.techstudytracker.com).
 
-**Esta es la rama `main`**: el punto de partida. La revista ya tiene sus
-estilos, sus datos, la capa que guarda las cartas y los tests, pero la portada
-sale vacía, todos los artículos enseñan el mismo, no hay título ni Open Graph
-y las cartas no se pueden enviar. Lo que falta está marcado con
-`TODO (paso N)`, con el mismo número que el paso de la lección. La rama
-[`solucion`](../../tree/solucion/revista) tiene la implementación completa,
-por si te atascas.
+**Esta es la rama `solucion`**: la implementación completa. La rama
+[`main`](../../tree/main/revista) tiene el punto de partida, con un
+`TODO (paso N)` en cada sitio que tienes que construir.
 
-## Los pasos
+«Caja Baja» es una revista de tipografía e imprenta hecha con React Router 8
+en modo framework. Cada página llega del servidor ya renderizada, con su
+título, su descripción y sus etiquetas Open Graph en el HTML, y después el
+navegador la hidrata:
 
-1. `app/routes.ts`: las rutas del artículo y de la página «no encontrada».
-2. `app/routes/portada.tsx`: el `loader` de la portada.
-3. `app/routes/articulo.tsx` y `no-encontrada.tsx`: cada artículo, y un 404 de verdad.
-4. `app/componentes/Metadatos.tsx`, `portada.tsx` y `articulo.tsx`: título, descripción y Open Graph.
-5. `app/datos/cartas.server.ts`, `articulo.tsx` y `FormularioCarta.tsx`: la `action` de las cartas, validada en el servidor.
-6. `app/componentes/FormularioCarta.tsx` y `articulo.tsx`: con JavaScript, el estado del envío.
-7. `app/fechas.ts`: la hora de publicación, igual en el servidor y en el navegador.
-8. `app/reloj.ts` y `app/componentes/HaceCuanto.tsx`: «hace dos días», solo en el navegador.
-
-`npm test` empieza con 2 tests en verde (la capa de datos) y 20 en rojo; los
-22 pasan al terminar el paso 8. `npm run typecheck` marca errores en
-`pruebas/` hasta el paso 5, porque los tests usan lo que todavía no existe, y
-en `app/routes/articulo.tsx` hasta el paso 1, porque los tipos de una ruta
-solo se generan cuando está registrada.
+- **Datos del servidor**: la portada y cada artículo cargan sus datos con un
+  `loader`, que solo se ejecuta en el servidor.
+- **Un 404 de verdad**: un artículo que no existe responde con el estado 404.
+- **Cartas al director**: un formulario con `action`, validado en el servidor,
+  que funciona también sin JavaScript.
+- **Fechas que no rompen la hidratación**: la hora de publicación, en hora
+  peninsular en los dos lados, y «hace dos días», solo en el navegador.
 
 ## Qué hay dentro
 

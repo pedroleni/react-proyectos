@@ -5,19 +5,38 @@ import TarjetaReceta from '../componentes/TarjetaReceta.jsx'
 import { useBusquedaRecetas } from '../consultas.js'
 
 export default function Buscar() {
-  // TODO (paso 7): la búsqueda vive en la URL (/buscar?q=pasta).
-  //   1. Lee q con useSearchParams (sin espacios sobrantes; '' si no hay).
-  //   2. Guarda lo escrito en un estado propio, texto, que empiece valiendo q.
-  //   3. Si la URL cambia por su cuenta (Atrás, el menú), el campo la sigue:
-  //      guarda la q anterior en otro estado y, si cambia, ajusta texto durante
-  //      el render (lección 39).
-  //   4. Un efecto que, 400 ms después de la última tecla, escriba texto en la
-  //      URL con setSearchParams(…, { replace: true }), y limpie su temporizador.
-  const q = ''
+  const [searchParams, setSearchParams] = useSearchParams()
+  // La búsqueda vive en la URL (/buscar?q=pasta): se comparte, se guarda y
+  // sobrevive a una recarga.
+  const q = (searchParams.get('q') ?? '').trim()
 
+  // Lo que hay escrito en el campo, que va por delante de la URL mientras tecleas.
+  const [texto, setTexto] = useState(q)
+
+  // Si la URL cambia por su cuenta (Atrás, el menú), el campo la sigue.
+  // Es el patrón de ajustar el estado durante el render de la lección 39.
+  const [qAnterior, setQAnterior] = useState(q)
+  if (q !== qAnterior) {
+    setQAnterior(q)
+    if (texto.trim() !== q) setTexto(q)
+  }
+
+  // Escribir también busca, 400 ms después de la última tecla. Con replace,
+  // teclear no llena el historial: Atrás sale de la búsqueda, no la deshace letra a letra.
+  useEffect(() => {
+    const termino = texto.trim()
+    if (termino === q) return
+    const temporizador = setTimeout(() => {
+      setSearchParams(termino ? { q: termino } : {}, { replace: true })
+    }, 400)
+    return () => clearTimeout(temporizador)
+  }, [texto, q, setSearchParams])
+
+  // Intro o el botón «Buscar»: sin esperar.
   function manejarEnvio(evento) {
     evento.preventDefault()
-    // TODO (paso 7): Intro o el botón «Buscar» escriben la búsqueda en la URL sin esperar.
+    const termino = texto.trim()
+    if (termino !== q) setSearchParams(termino ? { q: termino } : {}, { replace: true })
   }
 
   return (
@@ -30,8 +49,14 @@ export default function Buscar() {
         <label htmlFor="busqueda" className="solo-lectores">
           Nombre de la receta
         </label>
-        {/* TODO (paso 7): controla el campo con texto (value y onChange). */}
-        <input id="busqueda" type="search" placeholder="Por ejemplo: curry, pasta, chicken…" autoComplete="off" />
+        <input
+          id="busqueda"
+          type="search"
+          placeholder="Por ejemplo: curry, pasta, chicken…"
+          autoComplete="off"
+          value={texto}
+          onChange={(evento) => setTexto(evento.target.value)}
+        />
         <button className="boton">Buscar</button>
       </form>
 
@@ -41,16 +66,28 @@ export default function Buscar() {
 }
 
 function Resultados({ q }) {
-  // TODO (paso 7): pide la búsqueda con useBusquedaRecetas(q) y pinta, por este orden:
-  //   - sin q: «Escribe un nombre para empezar.» (ya está abajo);
-  //   - sin datos todavía: «Buscando recetas…»;
-  //   - error: <MensajeError error={error} onReintentar={refetch} />;
-  //   - datos de la búsqueda anterior (isPlaceholderData) que estaban vacíos: «Buscando recetas…»;
-  //   - cero resultados: «No encontramos recetas para «{q}».»;
-  //   - con resultados: un MensajeEstado con «N resultados para «q».» (o «Buscando «q»…»
-  //     si son de la búsqueda anterior) y la rejilla
-  //     <div className="rejilla-recetas" aria-busy={isPlaceholderData}> con una
-  //     <TarjetaReceta> por receta.
+  const { data: recetas, isPending, isPlaceholderData, error, refetch } = useBusquedaRecetas(q)
+
   if (!q) return <MensajeEstado>Escribe un nombre para empezar.</MensajeEstado>
-  return null
+  if (isPending) return <MensajeEstado>Buscando recetas…</MensajeEstado>
+  if (error) return <MensajeError error={error} onReintentar={refetch} />
+  // Datos de la búsqueda anterior que no tenían resultados: aún no hay nada que enseñar.
+  if (isPlaceholderData && recetas.length === 0) return <MensajeEstado>Buscando recetas…</MensajeEstado>
+  if (recetas.length === 0) return <MensajeEstado>No encontramos recetas para «{q}».</MensajeEstado>
+
+  return (
+    <>
+      <MensajeEstado>
+        {isPlaceholderData
+          ? `Buscando «${q}»…`
+          : `${recetas.length} ${recetas.length === 1 ? 'resultado' : 'resultados'} para «${q}».`}
+      </MensajeEstado>
+      {/* Con los datos de la búsqueda anterior, la rejilla se atenúa: aún no es lo que has pedido */}
+      <div className="rejilla-recetas" aria-busy={isPlaceholderData}>
+        {recetas.map((receta) => (
+          <TarjetaReceta key={receta.idMeal} receta={receta} />
+        ))}
+      </div>
+    </>
+  )
 }

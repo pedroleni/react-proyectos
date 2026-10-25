@@ -1,9 +1,11 @@
+import { useTareas } from '../TareasContext'
+
 export default function Cabecera() {
-  // TODO (paso 3): lee todas las tareas con useTareas() (impórtalo de
-  // '../TareasContext'), cuenta las que no están completadas y escribe el
-  // texto con singular y plural: «1 tarea pendiente», «3 tareas pendientes».
-  // Cuenta sobre todas las tareas, no sobre las visibles.
-  const textoContador = '0 tareas pendientes'
+  const tareas = useTareas()
+  // Cuenta sobre todas las tareas, no sobre las visibles: con el filtro
+  // «Completadas», las pendientes siguen siendo las que son.
+  const pendientes = tareas.filter((tarea) => !tarea.completada).length
+  const textoContador = `${pendientes} ${pendientes === 1 ? 'tarea pendiente' : 'tareas pendientes'}`
 
   return (
     <header className="app-header">

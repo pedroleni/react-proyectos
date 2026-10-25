@@ -17,7 +17,9 @@ export default function TablaCompleta({ pares, favoritos }: TablaProps) {
         <table className="tabla-pares">
           <Encabezado />
           <tbody>
-            {/* TODO (paso 4): una FilaPar por par, con su key y esFavorito */}
+            {pares.map((par) => (
+              <FilaPar key={par.simbolo} par={par} esFavorito={favoritos.has(par.simbolo)} />
+            ))}
           </tbody>
         </table>
       </div>

@@ -1,5 +1,5 @@
-import type { ComponentProps } from 'react'
-import { Link, type To } from 'react-router'
+import { addTransitionType, startTransition, type ComponentProps, type MouseEvent } from 'react'
+import { useHref, useLinkClickHandler, type To } from 'react-router'
 import type { Direccion } from '../transiciones'
 
 type Props = Omit<ComponentProps<'a'>, 'href' | 'onClick'> & {
@@ -10,12 +10,22 @@ type Props = Omit<ComponentProps<'a'>, 'href' | 'onClick'> & {
   state?: unknown
 }
 
-// Un <Link> que, además de navegar, dice hacia dónde.
+// Un <Link> que, además de navegar, dice hacia dónde: la navegación va dentro
+// de una transición con su tipo, y los <ViewTransition> eligen la animación
+// según ese tipo. Sigue siendo un enlace de verdad: Ctrl o Cmd + clic lo abren
+// en otra pestaña, porque de eso se encarga useLinkClickHandler.
 export default function EnlaceConTipo({ to, tipo, replace, state, ...resto }: Props) {
-  // TODO (paso 5): de momento es un <Link> normal y el tipo no llega a ninguna
-  // parte (solo se queda en data-tipo, para que lo veas en las DevTools).
-  // Devuelve un <a> con href={useHref(to)} y un onClick que haga, dentro de
-  // startTransition, addTransitionType(tipo) y después navegue con el
-  // manejador que te da useLinkClickHandler(to, { replace, state }).
-  return <Link {...resto} to={to} replace={replace} state={state} data-tipo={tipo} />
+  const href = useHref(to)
+  const navegarSegunElClic = useLinkClickHandler<HTMLAnchorElement>(to, { replace, state })
+
+  function manejarClic(evento: MouseEvent<HTMLAnchorElement>) {
+    startTransition(() => {
+      addTransitionType(tipo)
+      // React Router actualiza su estado dentro de otro startTransition, que
+      // hereda el tipo de este.
+      navegarSegunElClic(evento)
+    })
+  }
+
+  return <a {...resto} href={href} onClick={manejarClic} />
 }

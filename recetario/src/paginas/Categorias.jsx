@@ -4,23 +4,30 @@ import { MensajeEstado } from '../componentes/Mensajes.jsx'
 import { useCategorias } from '../consultas.js'
 
 // La ruta madre de /categorias y /categorias/:nombre. Su cabecera y la fila de
-// categorías se quedan montadas; lo que cambia va en el hueco de la ruta hija.
+// categorías se quedan montadas; lo que cambia va en el <Outlet />.
 export default function Categorias() {
-  // TODO (paso 8): pide las categorías con useCategorias().
+  const { data: categorias } = useCategorias()
 
   return (
     <section className="pagina seccion-contenido">
       <p className="antetitulo">Explora a tu manera</p>
       <h1>Categorías</h1>
 
-      {/* TODO (paso 8): cuando lleguen las categorías, una
-          <nav className="chips" aria-label="Categorías"> con un NavLink por
-          categoría (key: idCategory). El enlace es relativo: to={categoria.strCategory}
-          lleva de /categorias a /categorias/Beef. */}
+      {categorias && (
+        <nav className="chips" aria-label="Categorías">
+          {categorias.map((categoria) => (
+            // Enlace relativo: desde /categorias, «Beef» lleva a /categorias/Beef
+            <NavLink key={categoria.idCategory} to={categoria.strCategory}>
+              {categoria.strCategory}
+            </NavLink>
+          ))}
+        </nav>
+      )}
 
-      {/* TODO (paso 8): el hueco donde se pintan las rutas hijas.
-          TODO (paso 9): envuélvelo en su propio <Suspense> con
-          <MensajeEstado>Cargando…</MensajeEstado>, para que la fila siga a la vista. */}
+      {/* Un Suspense propio: mientras llega el archivo de una hija, la fila sigue a la vista */}
+      <Suspense fallback={<MensajeEstado>Cargando…</MensajeEstado>}>
+        <Outlet />
+      </Suspense>
     </section>
   )
 }
