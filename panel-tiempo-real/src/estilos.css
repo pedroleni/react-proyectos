@@ -1,0 +1,507 @@
+/* Los colores y la tipografía son los del panel cripto del proyecto 79 de
+   JavaScript; lo nuevo es la tabla. */
+:root {
+  --fondo: #f4f7fb;
+  --superficie: #ffffff;
+  --superficie-suave: #edf2f8;
+  --tinta: #142033;
+  --tinta-suave: #56647a;
+  --borde: #d8e0eb;
+  --acento: #3457d5;
+  --acento-oscuro: #233fa6;
+  --positivo: #137347;
+  --negativo: #b42318;
+  --alto-fila: 44px; /* el mismo número que ALTO_FILA en TablaVirtual.tsx */
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  color: var(--tinta);
+  background: var(--fondo);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: radial-gradient(circle at 15% -10%, rgb(52 87 213 / 0.12), transparent 32rem), var(--fondo);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+:where(a, button, input, select, [tabindex]):focus-visible {
+  outline: 3px solid #183eac;
+  outline-offset: 3px;
+}
+
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Cabecera y estado de la conexión */
+
+.cabecera-sitio {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  border-bottom: 1px solid rgb(216 224 235 / 0.85);
+  background: rgb(255 255 255 / 0.9);
+  backdrop-filter: blur(14px);
+}
+
+.navbar {
+  width: min(1320px, calc(100% - 2.5rem));
+  min-height: 64px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.navbar-marca {
+  font-size: 1.2rem;
+  font-weight: 850;
+  letter-spacing: -0.035em;
+  text-decoration: none;
+}
+
+.estado-conexion {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 0.88rem;
+}
+
+.estado-conexion p {
+  margin: 0;
+}
+
+.indicador {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 750;
+}
+
+.indicador::before {
+  content: '';
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: #b7791f;
+}
+
+.indicador.en-directo::before {
+  background: var(--positivo);
+  box-shadow: 0 0 0 4px rgb(19 115 71 / 0.15);
+}
+
+.indicador.reconectando {
+  color: var(--negativo);
+}
+
+.indicador.reconectando::before {
+  background: var(--negativo);
+}
+
+.ultima-hora {
+  color: var(--tinta-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Página */
+
+.pagina {
+  width: min(1320px, calc(100% - 2.5rem));
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  grid-template-areas:
+    'cabecera cabecera'
+    'controles controles'
+    'tabla medidor';
+  column-gap: 1.5rem;
+  align-items: start;
+}
+
+.cabecera-panel {
+  grid-area: cabecera;
+  margin-bottom: 1.5rem;
+}
+
+.antetitulo {
+  margin: 0 0 0.4rem;
+  color: var(--acento-oscuro);
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.cabecera-panel h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.resumen-panel {
+  max-width: 680px;
+  margin: 0.8rem 0 0;
+  color: var(--tinta-suave);
+  line-height: 1.55;
+}
+
+/* Controles */
+
+.barra-controles {
+  grid-area: controles;
+  margin-bottom: 1rem;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.8rem;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.82);
+  box-shadow: 0 10px 30px rgb(37 53 78 / 0.05);
+}
+
+.campo-control {
+  min-width: 0;
+  flex: 1 1 200px;
+  display: grid;
+  gap: 0.35rem;
+  color: var(--tinta-suave);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.campo-control input,
+.campo-control select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #b8c4d4;
+  border-radius: 10px;
+  color: var(--tinta);
+  background: var(--superficie);
+}
+
+.boton {
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--acento);
+  border-radius: 10px;
+  color: var(--acento-oscuro);
+  background: #eef2ff;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.boton:hover,
+.boton[aria-pressed='true'] {
+  color: white;
+  background: var(--acento-oscuro);
+}
+
+.interruptor {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.interruptor input {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--acento-oscuro);
+}
+
+/* La tabla */
+
+.zona-tabla {
+  grid-area: tabla;
+  min-width: 0;
+}
+
+.recuento,
+.filas-dom {
+  margin: 0 0 0.5rem;
+  color: var(--tinta-suave);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.filas-dom {
+  margin: 0.5rem 0 0;
+}
+
+.tabla-desplazable {
+  height: min(62vh, 616px);
+  overflow: auto;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: var(--superficie);
+  box-shadow: 0 12px 32px rgb(37 53 78 / 0.07);
+}
+
+.tabla-pares {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla-pares th,
+.tabla-pares td {
+  height: var(--alto-fila);
+  padding: 0 0.85rem;
+  overflow: hidden;
+  border-bottom: 1px solid var(--superficie-suave);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tabla-pares thead th {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  border-bottom-color: var(--borde);
+  color: var(--tinta-suave);
+  background: var(--superficie);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tabla-pares tbody tr:hover {
+  background: #f8faff;
+}
+
+.tabla-pares .celda-favorito {
+  width: 56px;
+  padding-right: 0;
+}
+
+.tabla-pares .celda-numero {
+  width: 140px;
+  text-align: right;
+}
+
+.tabla-pares .celda-volumen {
+  width: 150px;
+}
+
+.tabla-pares .celda-grafico {
+  width: 150px;
+}
+
+.celda-par {
+  font-weight: 800;
+}
+
+.inicial {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-right: 0.6rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  font-size: 0.8rem;
+  vertical-align: middle;
+}
+
+.cotizacion {
+  color: var(--tinta-suave);
+  font-weight: 600;
+}
+
+.positiva {
+  color: var(--positivo);
+  font-weight: 750;
+}
+
+.negativa {
+  color: var(--negativo);
+  font-weight: 750;
+}
+
+.boton-favorito {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  color: #765500;
+  background: transparent;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.boton-favorito:hover,
+.boton-favorito[aria-pressed='true'] {
+  color: #5b4000;
+  background: #ffe58b;
+}
+
+.mini-grafico {
+  width: 120px;
+  height: 32px;
+  display: block;
+  color: var(--tinta-suave);
+}
+
+.mini-grafico polyline {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.mini-grafico.sube {
+  color: var(--positivo);
+}
+
+.mini-grafico.baja {
+  color: var(--negativo);
+}
+
+.tabla-pares .relleno td {
+  padding: 0;
+  border: 0;
+}
+
+.mensaje-estado {
+  margin: 0;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  color: var(--tinta-suave);
+  background: var(--superficie);
+}
+
+/* El medidor */
+
+.medidor {
+  grid-area: medidor;
+  position: sticky;
+  top: 84px;
+  margin-top: 1.85rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: var(--superficie);
+  box-shadow: 0 12px 32px rgb(37 53 78 / 0.07);
+}
+
+.medidor h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+}
+
+.medidor p {
+  margin: 0 0 0.8rem;
+  color: var(--tinta-suave);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.medidor .medidor-build {
+  color: var(--acento-oscuro);
+  font-weight: 750;
+}
+
+.medidas {
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.medidas div {
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background: var(--superficie-suave);
+}
+
+.medidas dt {
+  color: var(--tinta-suave);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.medidas dd {
+  margin: 0.1rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+/* Pantallas estrechas: una columna, y fuera el volumen y el gráfico */
+
+@media (max-width: 960px) {
+  .pagina {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'cabecera'
+      'controles'
+      'tabla'
+      'medidor';
+  }
+
+  .medidor {
+    position: static;
+    margin-top: 1.5rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .tabla-pares {
+    min-width: 0;
+  }
+
+  .tabla-pares .celda-volumen,
+  .tabla-pares .celda-grafico {
+    display: none;
+  }
+
+  .ultima-hora {
+    display: none;
+  }
+}

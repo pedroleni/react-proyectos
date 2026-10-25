@@ -1,0 +1,425 @@
+:root {
+  --fondo: #121317;
+  --superficie: #1b1d23;
+  --borde: #2e313a;
+  --texto: #ece8e1;
+  --texto-suave: #a8a29a;
+  --acento: #e7b76b;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --ancho-maximo: 1240px;
+  --margen: clamp(1rem, 4vw, 3rem);
+
+  color-scheme: dark;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.55;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+h1,
+h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+a {
+  color: var(--acento);
+}
+
+:focus-visible {
+  outline: 3px solid var(--acento);
+  outline-offset: 3px;
+}
+
+/* Los títulos reciben el foco desde el código (tabIndex -1): sin marco. */
+[tabindex='-1']:focus {
+  outline: none;
+}
+
+/* ---------- Cabecera y pestañas ---------- */
+
+.cabecera {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+  padding: 1rem var(--margen) 0;
+  border-bottom: 1px solid var(--borde);
+  background: rgb(18 19 23 / 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.marca {
+  display: grid;
+  padding-bottom: 0.8rem;
+  color: var(--texto);
+  text-decoration: none;
+}
+
+.marca-asociacion {
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.marca-muestra {
+  font-family: var(--serif);
+  font-size: 1.7rem;
+  line-height: 1.1;
+}
+
+.pestanas ul {
+  display: flex;
+  gap: 1.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pestana {
+  position: relative;
+  display: block;
+  padding: 0.6rem 0.1rem 0.9rem;
+  color: var(--texto-suave);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pestana:hover,
+.pestana[aria-current='page'] {
+  color: var(--texto);
+}
+
+.pestana-indicador {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--acento);
+}
+
+/* ---------- Contenido ---------- */
+
+.contenido {
+  flex: 1;
+  width: 100%;
+  max-width: var(--ancho-maximo);
+  margin: 0 auto;
+  padding: 2rem var(--margen) 4rem;
+}
+
+.pie {
+  padding: 1.5rem var(--margen);
+  border-top: 1px solid var(--borde);
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.pie p {
+  margin: 0;
+}
+
+.pie-aviso {
+  max-width: 46rem;
+  margin: 0.4rem auto 0 !important;
+  font-size: 0.8rem;
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.boton:hover {
+  border-color: var(--texto-suave);
+  background: var(--superficie);
+}
+
+.boton-principal {
+  border-color: var(--acento);
+  background: var(--acento);
+  color: #1b1408;
+}
+
+.boton-principal:hover {
+  background: #f0c886;
+}
+
+/* ---------- La foto ---------- */
+
+.foto {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  object-fit: cover;
+  /* Lo que se ve mientras la foto llega: un degradado con sus tonos */
+  background:
+    radial-gradient(110% 70% at 78% 12%, color-mix(in oklab, var(--claro) 80%, transparent), transparent 60%),
+    linear-gradient(165deg, var(--medio), var(--oscuro) 85%);
+}
+
+.foto-recorte {
+  aspect-ratio: 1;
+}
+
+.foto-entera {
+  /* Tan ancha como quepa sin pasar de 72vh de alto */
+  width: min(100%, calc(72vh * var(--proporcion)));
+  margin-inline: auto;
+}
+
+/* ---------- Galería ---------- */
+
+.galeria-intro {
+  max-width: 46rem;
+  margin-bottom: 2.25rem;
+}
+
+.galeria-intro h1 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.galeria-intro p {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+}
+
+.cuadricula {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 2rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.miniatura {
+  display: block;
+  border-radius: 8px;
+  color: var(--texto);
+  text-decoration: none;
+}
+
+.miniatura .foto {
+  transition: filter 0.2s;
+}
+
+.miniatura:hover .foto {
+  filter: brightness(1.12);
+}
+
+.miniatura-texto {
+  display: grid;
+  margin-top: 0.7rem;
+}
+
+.miniatura-titulo {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  line-height: 1.25;
+}
+
+.miniatura-autoria {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+/* ---------- Ficha de una foto ---------- */
+
+.detalle {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(17rem, 1fr);
+  gap: 1.5rem 3rem;
+  align-items: start;
+}
+
+.detalle-foto {
+  margin: 0;
+}
+
+.detalle-contador {
+  margin: 0;
+  color: var(--acento);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.detalle-ficha h1 {
+  margin: 0.4rem 0 0.3rem;
+  font-size: clamp(1.9rem, 3vw, 2.6rem);
+}
+
+.detalle-autoria {
+  margin: 0 0 1.2rem;
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+}
+
+.detalle-descripcion {
+  margin: 0 0 1.5rem;
+}
+
+.detalle-datos,
+.visita-datos {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0;
+}
+
+.detalle-datos dt,
+.visita-datos dt {
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detalle-datos dd,
+.visita-datos dd {
+  margin: 0;
+}
+
+.detalle-nav {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 860px) {
+  .detalle {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .boton-volver {
+    order: -1;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ---------- Participa y Visita ---------- */
+
+.participa,
+.visita,
+.no-encontrada {
+  max-width: 46rem;
+}
+
+.participa h1,
+.visita h1,
+.no-encontrada h1 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+}
+
+.participa-intro,
+.visita-intro {
+  margin: 0 0 2rem;
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+}
+
+.formulario {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem 1.5rem;
+}
+
+.formulario label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.formulario-ancho {
+  grid-column: 1 / -1;
+}
+
+.formulario input:not([type='checkbox']),
+.formulario select,
+.formulario textarea {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  font-weight: 400;
+}
+
+.formulario .casilla {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 400;
+}
+
+.casilla input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--acento);
+}
+
+.formulario button {
+  justify-self: start;
+}
+
+.aviso {
+  margin: 0 0 1.5rem;
+  padding: 0.8rem 1rem;
+  border-left: 4px solid var(--acento);
+  border-radius: 4px;
+  background: var(--superficie);
+}
+
+@media (max-width: 600px) {
+  .formulario {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

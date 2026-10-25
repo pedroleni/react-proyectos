@@ -1,0 +1,186 @@
+/* Estilos de la página de matrícula. Los del kit están en src/kit/kit.css. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #fbf8f3;
+  color: #1f2933;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.5;
+}
+
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem 2rem;
+  padding: 1rem clamp(1rem, 5vw, 4rem);
+  background: #0f5c7a;
+  color: white;
+}
+
+.cabecera p {
+  margin: 0;
+}
+
+.marca {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.lema {
+  opacity: 0.9;
+}
+
+.pagina {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 1.5rem clamp(1rem, 5vw, 4rem) 3rem;
+}
+
+h1 {
+  margin: 0.5rem 0 1.25rem;
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+}
+
+.paso {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.12);
+}
+
+.paso h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.3rem;
+  color: #0f5c7a;
+}
+
+.modalidad {
+  margin: 0 0 1rem;
+  color: #52606d;
+}
+
+.grupos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+
+/* overflow: hidden recorta lo que sobresale de la tarjeta, también lo
+   que se coloca con position: absolute dentro de ella (es relative): por
+   eso el menú de «Opciones» se pinta con un portal, fuera de ella. */
+.grupo {
+  position: relative;
+  overflow: hidden;
+  padding: 1rem 1.15rem;
+  border: 1px solid #d9e2ec;
+  border-top: 5px solid #c2410c;
+  border-radius: 12px;
+  background: #fffdf9;
+}
+
+.grupo-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.grupo h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.grupo p {
+  margin: 0.5rem 0 0;
+}
+
+.plazas {
+  color: #2f6f3e;
+  font-weight: 600;
+}
+
+/* La región viva está siempre en el DOM (lección 37); vacía, no se ve. */
+.aviso {
+  margin: 0;
+}
+
+.aviso:not(:empty) {
+  padding: 0.85rem 1.1rem;
+  border-left: 5px solid #2f6f3e;
+  border-radius: 8px;
+  background: #e7f4ea;
+  font-weight: 600;
+}
+
+/* ---------- El formulario del diálogo */
+
+.formulario {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.formulario label {
+  display: grid;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.formulario .casilla {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+}
+
+.formulario input:not([type='checkbox']) {
+  padding: 0.55rem 0.75rem;
+  border: 2px solid #52606d;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 400;
+}
+
+.formulario input[type='checkbox'] {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.botones button {
+  padding: 0.55rem 1.1rem;
+  border: 2px solid #0f5c7a;
+  border-radius: 999px;
+  background: white;
+  color: #0f5c7a;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.botones .principal {
+  background: #0f5c7a;
+  color: white;
+}
+
+.formulario input:focus-visible,
+.botones button:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}

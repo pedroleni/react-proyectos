@@ -1,0 +1,40 @@
+{
+  "name": "panel-tiempo-real",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:sin-compilador": "vite --mode sin-compilador",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "medir": "vite build --mode perfil && vite preview --mode perfil",
+    "medir:sin-compilador": "vite build --mode perfil-sin-compilador && vite preview --mode perfil-sin-compilador",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tanstack/react-virtual": "3.14.22",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.7",
+    "@rolldown/plugin-babel": "0.2.4",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.8",
+    "@types/babel__core": "7.20.5",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "babel-plugin-react-compiler": "1.0.0",
+    "jsdom": "28.1.0",
+    "oxlint": "1.89.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

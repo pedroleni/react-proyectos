@@ -1,0 +1,197 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f4f1ea;
+  --surface: #ffffff;
+  --border: #e2ded6;
+  --ink: #2c2a26;
+  --ink-muted: #6f6a61;
+  --accent: #7c3aed;
+  --accent-ink: #ffffff;
+  --danger: #ef4444;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+/* En la versión en JavaScript, <main class="app"> era hijo directo de
+   <body>. Con React, entre los dos está el <div id="root"> donde se monta
+   la aplicación: es él quien ocupa el sitio de main en el flex de body, y
+   sin esta regla su ancho dependería del texto de las tareas. */
+#root {
+  width: 100%;
+  max-width: 480px;
+}
+
+.app {
+  width: 100%;
+  max-width: 480px;
+}
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.app-header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.contador {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.formulario-tarea {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.formulario-tarea input {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.formulario-tarea input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.formulario-tarea button {
+  padding: 0.6rem 1.1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filtros {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.filtro {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.filtro[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--surface);
+  border-color: var(--ink);
+}
+
+.lista-tareas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tarea {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.tarea-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.tarea-texto {
+  flex: 1;
+  word-break: break-word;
+}
+
+.tarea.completada .tarea-texto {
+  text-decoration: line-through;
+  color: var(--ink-muted);
+}
+
+.tarea-fecha {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.tarea-borrar {
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+}
+
+.tarea-borrar:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+.mensaje-vacio {
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+  margin-top: 2rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #18181b;
+    --surface: #232326;
+    --border: #34343a;
+    --ink: #f4f4f5;
+    --ink-muted: #a1a1aa;
+    --accent: #a78bfa;
+    --accent-ink: #18181b;
+  }
+}

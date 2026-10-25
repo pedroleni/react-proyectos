@@ -1,0 +1,80 @@
+/* Las animaciones de la galería. Las clases (foto-compartida,
+   entra-por-la-derecha…) las ponen los <ViewTransition> según el caso
+   y el tipo de transición; están listadas en src/transiciones.ts. */
+
+/* ---------- La foto que viaja entre la cuadrícula y la ficha ---------- */
+
+/* TODO (paso 3): con el elemento compartido ya funcionando, fíjate en la
+   foto a mitad de camino: la miniatura es cuadrada y la foto grande no.
+   1. ::view-transition-group(.foto-compartida): animation-duration de 0.5s
+      y animation-timing-function cubic-bezier(0.2, 0, 0, 1).
+   2. ::view-transition-old(.foto-compartida) y ::view-transition-new(.foto-compartida):
+      height: 100%, object-fit: cover y overflow: clip, para que las dos
+      imágenes llenen el grupo recortándose en vez de salirse de él. */
+
+/* ---------- La cabecera, siempre encima ---------- */
+
+/* TODO (paso 4): al volver a una foto de abajo, la galería tapa la cabecera
+   durante la animación. Dale a .cabecera view-transition-name: cabecera y a
+   ::view-transition-group(cabecera) un z-index: 1. */
+
+/* ---------- Según la dirección: adelante entra por la derecha ---------- */
+
+@keyframes desde-la-derecha {
+  from {
+    transform: translateX(80px);
+    opacity: 0;
+  }
+}
+
+@keyframes desde-la-izquierda {
+  from {
+    transform: translateX(-80px);
+    opacity: 0;
+  }
+}
+
+@keyframes hacia-la-izquierda {
+  to {
+    transform: translateX(-80px);
+    opacity: 0;
+  }
+}
+
+@keyframes hacia-la-derecha {
+  to {
+    transform: translateX(80px);
+    opacity: 0;
+  }
+}
+
+::view-transition-new(.entra-por-la-derecha) {
+  animation: 0.4s cubic-bezier(0.2, 0, 0, 1) 0.08s both desde-la-derecha;
+}
+
+::view-transition-new(.entra-por-la-izquierda) {
+  animation: 0.4s cubic-bezier(0.2, 0, 0, 1) 0.08s both desde-la-izquierda;
+}
+
+::view-transition-old(.sale-por-la-izquierda) {
+  animation: 0.25s ease-in both hacia-la-izquierda;
+}
+
+::view-transition-old(.sale-por-la-derecha) {
+  animation: 0.25s ease-in both hacia-la-derecha;
+}
+
+/* ---------- La raya de la pestaña activa ---------- */
+
+::view-transition-group(.raya) {
+  z-index: 2;
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ---------- Para quien pide menos movimiento ---------- */
+
+/* TODO (paso 7): React no apaga las animaciones a quien ha pedido menos
+   movimiento en su sistema. Con @media (prefers-reduced-motion: reduce),
+   pon animation: none !important a ::view-transition-group(*),
+   ::view-transition-old(*) y ::view-transition-new(*). */

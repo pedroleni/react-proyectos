@@ -1,0 +1,231 @@
+/* Estilos mínimos del kit. Los estados se leen de los atributos ARIA
+   (aria-selected, aria-expanded...), no de clases propias: así lo que se
+   ve y lo que anuncia un lector de pantalla no se pueden separar. */
+
+:root {
+  --kit-tinta: #1f2933;
+  --kit-suave: #52606d;
+  --kit-borde: #cbd2d9;
+  --kit-acento: #0f5c7a;
+  --kit-acento-claro: #e3f1f6;
+  --kit-foco: #f59e0b;
+  --kit-fondo: #ffffff;
+}
+
+/* Que siempre se vea dónde está el foco del teclado */
+.kit-pestana:focus-visible,
+.kit-pestanas-panel:focus-visible,
+.kit-menu-boton:focus-visible,
+.kit-menu-opcion:focus-visible,
+.kit-dialogo:focus-visible {
+  outline: 3px solid var(--kit-foco);
+  outline-offset: 2px;
+}
+
+/* ---------- Pestañas */
+
+.kit-pestanas-lista {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--kit-borde);
+}
+
+.kit-pestana {
+  padding: 0.6rem 1.1rem;
+  border: none;
+  border-bottom: 4px solid transparent;
+  margin-bottom: -2px;
+  background: none;
+  color: var(--kit-suave);
+  font: inherit;
+  cursor: pointer;
+}
+
+.kit-pestana[aria-selected='true'] {
+  border-bottom-color: var(--kit-acento);
+  color: var(--kit-tinta);
+  font-weight: 700;
+}
+
+.kit-pestanas-panel {
+  padding: 1rem 0.25rem;
+}
+
+/* ---------- Diálogo */
+
+.kit-dialogo-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(15 23 42 / 0.55);
+}
+
+.kit-dialogo {
+  width: min(32rem, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  padding: 1.5rem 1.75rem;
+  border-radius: 14px;
+  background: var(--kit-fondo);
+  color: var(--kit-tinta);
+  box-shadow: 0 20px 50px rgb(15 23 42 / 0.35);
+}
+
+.kit-dialogo-titulo {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+}
+
+.kit-dialogo-descripcion {
+  margin: 0 0 1rem;
+  color: var(--kit-suave);
+}
+
+/* Los centinelas reciben el foco un instante y lo reenvían: no se ven. */
+.kit-centinela {
+  position: fixed;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- Menú */
+
+.kit-menu-boton {
+  padding: 0.35rem 0.8rem;
+  border: 2px solid var(--kit-acento);
+  border-radius: 999px;
+  background: var(--kit-fondo);
+  color: var(--kit-acento);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.kit-menu-boton[aria-expanded='true'] {
+  background: var(--kit-acento);
+  color: white;
+}
+
+.kit-menu {
+  z-index: 5;
+  display: grid;
+  min-width: 15rem;
+  padding: 0.35rem;
+  border: 1px solid var(--kit-borde);
+  border-radius: 10px;
+  background: var(--kit-fondo);
+  box-shadow: 0 12px 30px rgb(15 23 42 / 0.2);
+}
+
+.kit-menu-opcion {
+  padding: 0.55rem 0.8rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--kit-tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.kit-menu-opcion:hover,
+.kit-menu-opcion:focus {
+  background: var(--kit-acento-claro);
+}
+
+/* ---------- Combobox */
+
+.kit-combobox {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 24rem;
+}
+
+.kit-combobox-etiqueta {
+  font-weight: 600;
+}
+
+.kit-combobox-caja {
+  position: relative;
+  display: flex;
+  border-radius: 8px;
+}
+
+/* El anillo del foco rodea campo y botón, que se ven como una sola pieza */
+.kit-combobox-caja:has(.kit-combobox-campo:focus-visible) {
+  outline: 3px solid var(--kit-foco);
+  outline-offset: 2px;
+}
+
+.kit-combobox-campo:focus-visible {
+  outline: none;
+}
+
+.kit-combobox-campo {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.75rem;
+  border: 2px solid var(--kit-suave);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  font: inherit;
+}
+
+.kit-combobox-boton {
+  padding: 0 0.8rem;
+  border: 2px solid var(--kit-suave);
+  border-radius: 0 8px 8px 0;
+  background: var(--kit-acento-claro);
+  font: inherit;
+  cursor: pointer;
+}
+
+.kit-combobox-ayuda,
+.kit-combobox-resumen {
+  margin: 0;
+  color: var(--kit-suave);
+  font-size: 0.9em;
+}
+
+.kit-combobox-lista {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  z-index: 4;
+  max-height: 16rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.3rem;
+  border: 1px solid var(--kit-borde);
+  border-radius: 8px;
+  background: var(--kit-fondo);
+  box-shadow: 0 12px 30px rgb(15 23 42 / 0.2);
+  list-style: none;
+}
+
+.kit-combobox-lista[hidden] {
+  display: none;
+}
+
+.kit-combobox-opcion {
+  padding: 0.45rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.kit-combobox-opcion:hover {
+  background: #f0f4f8;
+}
+
+/* La opción marcada con las flechas: el foco no está en ella, así que
+   el estilo sale de aria-selected, que es lo que lee el lector. */
+.kit-combobox-opcion[aria-selected='true'] {
+  outline: 3px solid var(--kit-foco);
+  outline-offset: -3px;
+  background: var(--kit-acento-claro);
+  font-weight: 600;
+}

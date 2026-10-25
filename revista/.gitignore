@@ -1,0 +1,10 @@
+.DS_Store
+.env
+/node_modules/
+
+# React Router
+/.react-router/
+/build/
+
+# Las cartas que se envían mientras pruebas el proyecto
+/datos/

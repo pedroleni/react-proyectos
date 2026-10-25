@@ -1,0 +1,333 @@
+/* Caja Baja: papel, tinta negra y un rojo de imprenta. Fuentes del sistema,
+   sin descargas: la revista se lee igual sin conexión a otros servidores. */
+
+:root {
+  --papel: #fbf8f1;
+  --tinta: #1d1b18;
+  --tinta-suave: #5b554c;
+  --rojo: #a4261d;
+  --filete: #d9d1c3;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--serif);
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--rojo);
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: var(--rojo);
+}
+
+:focus-visible {
+  outline: 3px solid var(--rojo);
+  outline-offset: 2px;
+}
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ cabecera y pie */
+
+.cabecera {
+  padding: 2rem 1.25rem 1.25rem;
+  border-bottom: 3px double var(--tinta);
+  text-align: center;
+}
+
+.cabecera-marca {
+  font-size: clamp(2.6rem, 7vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.cabecera-lema {
+  margin: 0.6rem 0 0;
+  color: var(--tinta-suave);
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.pie {
+  margin-top: 4rem;
+  padding: 1.5rem 1.25rem 2.5rem;
+  border-top: 1px solid var(--filete);
+  color: var(--tinta-suave);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+main {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 0;
+}
+
+/* ------------------------------------------------------------------- portada */
+
+.seccion {
+  margin: 0 0 0.4rem;
+  color: var(--rojo);
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tarjeta-titulo {
+  margin: 0 0 0.5rem;
+  font-size: 1.45rem;
+  line-height: 1.2;
+}
+
+.tarjeta-titulo a {
+  text-decoration: none;
+}
+
+.tarjeta-titulo a:hover {
+  text-decoration: underline;
+}
+
+.entradilla {
+  margin: 0 0 0.75rem;
+  color: var(--tinta-suave);
+}
+
+.firma {
+  margin: 0;
+  color: var(--tinta-suave);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+}
+
+.tarjeta-destacada {
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--filete);
+  text-align: center;
+}
+
+.tarjeta-destacada .tarjeta-titulo {
+  max-width: 22ch;
+  margin-inline: auto;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+}
+
+.tarjeta-destacada .entradilla {
+  max-width: 40rem;
+  margin-inline: auto;
+  font-size: 1.25rem;
+}
+
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 2rem 2.5rem;
+  margin-top: 2rem;
+}
+
+.rejilla .tarjeta {
+  padding-top: 1rem;
+  border-top: 3px solid var(--tinta);
+}
+
+/* ------------------------------------------------------------------ artículo */
+
+.articulo {
+  max-width: 42rem;
+}
+
+.articulo-cabecera {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.articulo h1 {
+  margin: 0 0 0.75rem;
+  font-size: clamp(2rem, 5vw, 2.9rem);
+  line-height: 1.15;
+}
+
+.articulo .entradilla {
+  font-size: 1.25rem;
+}
+
+.cuerpo p {
+  margin: 0 0 1.1rem;
+  hyphens: auto;
+}
+
+/* La capitular: la primera letra del primer párrafo, a tres líneas. */
+.cuerpo p:first-child::first-letter {
+  float: left;
+  margin: 0.08em 0.1em 0 0;
+  color: var(--rojo);
+  font-size: 3.6em;
+  font-weight: 700;
+  line-height: 0.82;
+}
+
+.cartas,
+.otros {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 3px double var(--tinta);
+}
+
+.cartas h2,
+.otros h2 {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+}
+
+.cartas h3 {
+  margin: 2rem 0 0.75rem;
+  font-size: 1.2rem;
+}
+
+.aviso:empty {
+  display: none;
+}
+
+.aviso {
+  padding: 0.75rem 1rem;
+  border-left: 4px solid #2f6b3a;
+  background: #eaf3e6;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+}
+
+.lista-cartas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.carta {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--filete);
+  background: #fffdf8;
+}
+
+.carta-nueva {
+  border-color: #2f6b3a;
+  box-shadow: 0 0 0 2px #2f6b3a33;
+}
+
+.carta blockquote {
+  margin: 0 0 0.5rem;
+  font-style: italic;
+}
+
+/* ---------------------------------------------------------------- formulario */
+
+.formulario-carta {
+  display: grid;
+  gap: 1rem;
+  font-family: var(--sans);
+  font-size: 1rem;
+}
+
+.campo {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.campo label {
+  font-weight: 600;
+}
+
+.campo input,
+.campo textarea {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #8f877b;
+  border-radius: 4px;
+  background: white;
+  color: var(--tinta);
+  font: inherit;
+}
+
+.campo [aria-invalid='true'] {
+  border-color: var(--rojo);
+  box-shadow: 0 0 0 1px var(--rojo);
+}
+
+.error {
+  margin: 0;
+  color: var(--rojo);
+  font-size: 0.9rem;
+}
+
+.formulario-carta button {
+  justify-self: start;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--tinta);
+  color: var(--papel);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.formulario-carta button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.otros ul {
+  padding-left: 1.2rem;
+}
+
+.otros li {
+  margin-bottom: 0.4rem;
+}
+
+/* --------------------------------------------------------------- no encontrada */
+
+.no-encontrada {
+  max-width: 42rem;
+  text-align: center;
+}
+
+.no-encontrada ul {
+  padding: 0;
+  list-style: none;
+}
+
+.no-encontrada pre {
+  overflow-x: auto;
+  text-align: left;
+  font-size: 0.8rem;
+}
