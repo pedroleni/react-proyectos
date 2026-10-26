@@ -5,9 +5,10 @@ import Metadatos from '~/componentes/Metadatos'
 import { origenPublico } from '~/config.server'
 import { buscarArticulo, otrosArticulos } from '~/datos/articulos.server'
 import { guardarCarta, leerCartas, validarCarta } from '~/datos/cartas.server'
+import { medir, tiemposContext } from '~/tiempos.server'
 import type { Route } from './+types/articulo'
 
-export async function loader({ params, request }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
   const articulo = buscarArticulo(params.slug)
   if (!articulo) {
     // Un 404 de verdad: el estado HTTP de la respuesta y el ErrorBoundary de
@@ -17,9 +18,11 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   const url = new URL(request.url)
   const origen = origenPublico(request)
+  // Lo que ha dejado el middleware de root: aquí se apunta lo que tarda leer las cartas.
+  const tiempos = context.get(tiemposContext)
   return {
     articulo,
-    cartas: await leerCartas(articulo.slug),
+    cartas: await medir(tiempos, 'cartas', () => leerCartas(articulo.slug)),
     // Tras enviar una carta, la action redirige aquí con ?carta=<id>.
     cartaNueva: url.searchParams.get('carta'),
     otros: otrosArticulos(articulo.slug),

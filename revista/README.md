@@ -18,8 +18,12 @@ navegador la hidrata:
 - **Un 404 de verdad**: un artículo que no existe responde con el estado 404.
 - **Cartas al director**: un formulario con `action`, validado en el servidor,
   que funciona también sin JavaScript.
+- **Un boletín que no te saca de la página**: el formulario del pie se envía
+  con `useFetcher`, sin navegar; sin JavaScript, lleva a `/boletin`.
 - **Fechas que no rompen la hidratación**: la hora de publicación, en hora
   peninsular en los dos lados, y «hace dos días», solo en el navegador.
+- **Un middleware que mide cada petición**: escribe una línea en la terminal y
+  añade la cabecera `Server-Timing`, que el navegador enseña en la pestaña Red.
 
 ## Qué hay dentro
 
@@ -30,17 +34,21 @@ app/
   routes/
     portada.tsx               — /                  loader con los artículos
     articulo.tsx              — /articulos/:slug   loader, 404, action de las cartas y ErrorBoundary
+    boletin.tsx               — /boletin           action del boletín (y su página, sin JavaScript)
     no-encontrada.tsx         — cualquier otra dirección, con su 404
   componentes/
     Metadatos.tsx             — <title>, <meta> y Open Graph de cada página
     TarjetaArticulo.tsx       — un artículo en la portada
     FormularioCarta.tsx       — el formulario de las cartas al director
+    FormularioBoletin.tsx     — el boletín del pie, con useFetcher
     FechaPublicacion.tsx      — «21 de octubre de 2026 a las 9:30»
     HaceCuanto.tsx            — «· anteayer», solo en el navegador
   datos/
     articulos.server.ts       — los seis artículos (solo en el servidor)
     cartas.server.ts          — guardar, leer y validar las cartas (solo en el servidor)
+    boletin.server.ts         — los correos del boletín (solo en el servidor)
   config.server.ts            — la URL pública, de la variable de entorno URL_PUBLICA
+  tiempos.server.ts           — el middleware que mide cada petición (cabecera Server-Timing)
   fechas.ts                   — formatear fechas igual en el servidor y en el navegador
   reloj.ts                    — useAhora(): la hora, como almacén externo
   tipos.ts                    — los tipos que comparten los dos lados
@@ -68,18 +76,20 @@ npm run dev
 ```
 
 - `npm run dev`: servidor de desarrollo, con renderizado en el servidor, en `http://localhost:5173`
-- `npm test`: los tests (22)
+- `npm test`: los tests (30)
 - `npm run typecheck`: genera los tipos de las rutas y comprueba los tipos
 - `npm run build`: construye el servidor y el cliente en `build/`
 - `npm start`: arranca ese build, el servidor de producción, en `http://localhost:3000`
 
-Dos variables de entorno, opcionales:
+Tres variables de entorno, opcionales:
 
 - `URL_PUBLICA`: la dirección pública de la revista (por ejemplo,
   `https://cajabaja.example`), para las URL absolutas de Open Graph. Sin ella,
   sale de cada petición.
 - `ARCHIVO_CARTAS`: dónde se guardan las cartas. Por defecto, `datos/cartas.json`
   (la carpeta `datos/` está en `.gitignore`).
+- `ARCHIVO_BOLETIN`: dónde se guardan los correos del boletín. Por defecto,
+  `datos/boletin.json`.
 
 ## De dónde sale
 

@@ -1,8 +1,14 @@
 import { isRouteErrorResponse, Link, Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router'
+import FormularioBoletin from './componentes/FormularioBoletin'
+import { registrarTiempos } from './tiempos.server'
 import type { Route } from './+types/root'
 import './app.css'
 
 export const links: Route.LinksFunction = () => [{ rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' }]
+
+// Envuelve cada petición que llega al servidor, de documento o de datos, por
+// fuera de los loader y las action de todas las rutas.
+export const middleware: Route.MiddlewareFunction[] = [registrarTiempos]
 
 // El documento entero: lo renderiza el servidor en cada petición y lo hidrata
 // el navegador. Envuelve tanto a las páginas como a los ErrorBoundary.
@@ -24,6 +30,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </header>
         {children}
         <footer className="pie">
+          <FormularioBoletin />
           <p>Caja Baja se escribe y se compone en el Taller La Minerva, en Zaragoza.</p>
         </footer>
         <ScrollRestoration />
