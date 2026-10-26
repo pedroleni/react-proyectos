@@ -2,7 +2,7 @@
 
 /**
  * «21 de octubre de 2026 a las 9:30».
- * TODO (paso 7): en tu ordenador funciona, porque el servidor y el navegador
+ * TODO (paso 8): en tu ordenador funciona, porque el servidor y el navegador
  * están en la misma zona horaria. Arranca el servidor en UTC, como uno de
  * producción (TZ=UTC npm run dev), mira la consola del navegador y arréglalo.
  */

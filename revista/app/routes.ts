@@ -6,4 +6,5 @@ export default [
   // @react-router/dev/routes:
   //   - articulos/:slug → routes/articulo.tsx
   //   - * (cualquier otra dirección) → routes/no-encontrada.tsx
+  // TODO (paso 7): y la del boletín: boletin → routes/boletin.tsx
 ] satisfies RouteConfig

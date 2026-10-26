@@ -78,7 +78,8 @@ export async function guardarCarta(
 
 export const LIMITES = { nombre: 60, textoMinimo: 20, texto: 800 }
 
-const CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+/** Algo, una arroba, algo, un punto y algo. La usa también el boletín. */
+export const CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export type ResultadoValidacion =
   | { ok: true; carta: Record<CamposCarta, string> }

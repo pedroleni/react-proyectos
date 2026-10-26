@@ -38,7 +38,7 @@ async function hidratarDespues(generado: string, leido: string) {
   return { html, contenedor, errores }
 }
 
-describe('Paso 8: «hace dos días», solo en el navegador', () => {
+describe('Paso 9: «hace dos días», solo en el navegador', () => {
   it('el servidor no escribe cuánto hace: no sabe cuándo se va a leer la página', () => {
     vi.setSystemTime(new Date('2026-10-21T12:30:00+02:00'))
     expect(renderToString(<HaceCuanto fecha={FECHA} />)).toBe('')

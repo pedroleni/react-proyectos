@@ -11,7 +11,7 @@ afterEach(() => {
   process.env.TZ = zonaOriginal
 })
 
-describe('Paso 7: la hora de publicación, igual en los dos lados', () => {
+describe('Paso 8: la hora de publicación, igual en los dos lados', () => {
   it('el servidor en UTC y un lector en Madrid pintan la misma fecha, y la hidratación no encuentra diferencias', async () => {
     // El servidor de producción, en UTC, genera el HTML...
     process.env.TZ = 'UTC'

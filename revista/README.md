@@ -7,10 +7,10 @@ Proyecto 98 del temario de React de [Tech Study Tracker](https://www.techstudytr
 **Esta es la rama `main`**: el punto de partida. La revista ya tiene sus
 estilos, sus datos, la capa que guarda las cartas y los tests, pero la portada
 sale vacía, todos los artículos enseñan el mismo, no hay título ni Open Graph
-y las cartas no se pueden enviar. Lo que falta está marcado con
-`TODO (paso N)`, con el mismo número que el paso de la lección. La rama
-[`solucion`](../../tree/solucion/revista) tiene la implementación completa,
-por si te atascas.
+y ni las cartas ni el boletín del pie se pueden enviar. Lo que falta está
+marcado con `TODO (paso N)`, con el mismo número que el paso de la lección. La
+rama [`solucion`](../../tree/solucion/revista) tiene la implementación
+completa, por si te atascas.
 
 ## Los pasos
 
@@ -20,14 +20,17 @@ por si te atascas.
 4. `app/componentes/Metadatos.tsx`, `portada.tsx` y `articulo.tsx`: título, descripción y Open Graph.
 5. `app/datos/cartas.server.ts`, `articulo.tsx` y `FormularioCarta.tsx`: la `action` de las cartas, validada en el servidor.
 6. `app/componentes/FormularioCarta.tsx` y `articulo.tsx`: con JavaScript, el estado del envío.
-7. `app/fechas.ts`: la hora de publicación, igual en el servidor y en el navegador.
-8. `app/reloj.ts` y `app/componentes/HaceCuanto.tsx`: «hace dos días», solo en el navegador.
+7. `app/routes.ts`, `app/routes/boletin.tsx` y `app/componentes/FormularioBoletin.tsx`: el boletín, sin cambiar de página (`useFetcher`).
+8. `app/fechas.ts`: la hora de publicación, igual en el servidor y en el navegador.
+9. `app/reloj.ts` y `app/componentes/HaceCuanto.tsx`: «hace dos días», solo en el navegador.
+10. `app/tiempos.server.ts`, `app/root.tsx` y `articulo.tsx`: cuánto tarda cada petición, con un middleware.
 
-`npm test` empieza con 2 tests en verde (la capa de datos) y 20 en rojo; los
-22 pasan al terminar el paso 8. `npm run typecheck` marca errores en
-`pruebas/` hasta el paso 5, porque los tests usan lo que todavía no existe, y
-en `app/routes/articulo.tsx` hasta el paso 1, porque los tipos de una ruta
-solo se generan cuando está registrada.
+`npm test` empieza con 2 tests en verde (la capa de datos) y 28 en rojo; los
+30 pasan al terminar el paso 10. `npm run typecheck` marca errores en
+`pruebas/` hasta el paso 7, porque los tests usan lo que todavía no existe, y
+en `app/routes/articulo.tsx` hasta el paso 1 y en `app/routes/boletin.tsx`
+hasta el 7, porque los tipos de una ruta solo se generan cuando está
+registrada.
 
 ## Qué hay dentro
 
@@ -38,17 +41,21 @@ app/
   routes/
     portada.tsx               — /                  loader con los artículos
     articulo.tsx              — /articulos/:slug   loader, 404, action de las cartas y ErrorBoundary
+    boletin.tsx               — /boletin           action del boletín (y su página, sin JavaScript)
     no-encontrada.tsx         — cualquier otra dirección, con su 404
   componentes/
     Metadatos.tsx             — <title>, <meta> y Open Graph de cada página
     TarjetaArticulo.tsx       — un artículo en la portada
     FormularioCarta.tsx       — el formulario de las cartas al director
+    FormularioBoletin.tsx     — el boletín del pie, con useFetcher
     FechaPublicacion.tsx      — «21 de octubre de 2026 a las 9:30»
     HaceCuanto.tsx            — «· anteayer», solo en el navegador
   datos/
     articulos.server.ts       — los seis artículos (solo en el servidor)
     cartas.server.ts          — guardar, leer y validar las cartas (solo en el servidor)
+    boletin.server.ts         — los correos del boletín (solo en el servidor)
   config.server.ts            — la URL pública, de la variable de entorno URL_PUBLICA
+  tiempos.server.ts           — el middleware que mide cada petición (cabecera Server-Timing)
   fechas.ts                   — formatear fechas igual en el servidor y en el navegador
   reloj.ts                    — useAhora(): la hora, como almacén externo
   tipos.ts                    — los tipos que comparten los dos lados
@@ -76,18 +83,20 @@ npm run dev
 ```
 
 - `npm run dev`: servidor de desarrollo, con renderizado en el servidor, en `http://localhost:5173`
-- `npm test`: los tests (22)
+- `npm test`: los tests (30)
 - `npm run typecheck`: genera los tipos de las rutas y comprueba los tipos
 - `npm run build`: construye el servidor y el cliente en `build/`
 - `npm start`: arranca ese build, el servidor de producción, en `http://localhost:3000`
 
-Dos variables de entorno, opcionales:
+Tres variables de entorno, opcionales:
 
 - `URL_PUBLICA`: la dirección pública de la revista (por ejemplo,
   `https://cajabaja.example`), para las URL absolutas de Open Graph. Sin ella,
   sale de cada petición.
 - `ARCHIVO_CARTAS`: dónde se guardan las cartas. Por defecto, `datos/cartas.json`
   (la carpeta `datos/` está en `.gitignore`).
+- `ARCHIVO_BOLETIN`: dónde se guardan los correos del boletín. Por defecto,
+  `datos/boletin.json`.
 
 ## De dónde sale
 

@@ -12,6 +12,9 @@ export async function loader() {
   // página y de su tarjeta (/og/<slug>.png), con origenPublico(request).
   // TODO (paso 5): y las cartas del artículo (leerCartas, de
   // ~/datos/cartas.server) y cartaNueva, el id que llega en ?carta=.
+  // TODO (paso 10): mide lo que tarda leerCartas y apúntalo en los tiempos que
+  // deja el middleware: medir(context.get(tiemposContext), 'cartas', () => …),
+  // de ~/tiempos.server.
   const articulo = buscarArticulo('caja-alta-y-caja-baja')!
   return { articulo, otros: otrosArticulos(articulo.slug) }
 }
