@@ -109,5 +109,5 @@ del sistema), sin el `Dockerfile` y con Vitest para los tests. Las imágenes de
 
 React 19.3.1, React Router 8.5.0 (`react-router`, `@react-router/dev`,
 `@react-router/node` y `@react-router/serve`), isbot 5.2.2, Vite 8.3.5,
-TypeScript 5.9.3 (la de la plantilla), Vitest 5.0.5, Testing Library React
+TypeScript 7.0.2, Vitest 5.0.5, Testing Library React
 16.3.3, user-event 14.6.8, jest-dom 7.0.1 y jsdom 30.1.3.
