@@ -87,6 +87,6 @@ npm run dev
 
 ## Versiones
 
-React 19.3.1, React Router 8.5.0, Vite 8.3.5, TypeScript 6.0.3, Vitest
+React 19.3.1, React Router 8.5.0, Vite 8.3.5, TypeScript 7.0.2, Vitest
 5.0.5, Testing Library React 16.3.3, user-event 14.6.8, jest-dom 7.0.1,
 jsdom 30.1.3 y Oxlint 1.89.0.

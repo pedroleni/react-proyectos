@@ -67,7 +67,7 @@ las serviría tu servidor.
 
 ## Versiones
 
-React 19.3.1, Vite 8.3.5, TypeScript 6.0.3, Zod 4.6.7, MSW 3.0.3, Vitest
+React 19.3.1, Vite 8.3.5, TypeScript 7.0.2, Zod 4.6.7, MSW 3.0.3, Vitest
 5.0.5, Testing Library React 16.3.3, user-event 14.6.8, jest-dom 7.0.1,
 vitest-axe 0.1.0 (axe-core 4.14.0) y jsdom 28.1.0. jsdom se queda en la 28
 porque la 30 pide Node 22.22 o 24.15.

@@ -49,7 +49,7 @@ Dos opciones en la URL:
 
 ## Versiones
 
-React 19.3.1, TypeScript 6.0.3, Vite 8.3.5, `@vitejs/plugin-react` 6.1.2,
+React 19.3.1, TypeScript 7.0.2, Vite 8.3.5, `@vitejs/plugin-react` 6.1.2,
 `babel-plugin-react-compiler` 1.0.0 con `@rolldown/plugin-babel` 0.2.4 y
 `@babel/core` 7.29.7, `@tanstack/react-virtual` 3.14.22, Vitest 5.0.5,
 Testing Library React 16.3.3, user-event 14.6.8, jest-dom 7.0.1, jsdom 28.1.0
